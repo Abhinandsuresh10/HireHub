@@ -36,7 +36,7 @@ export class adminService implements IAdminService {
 
      async loginUser(email: string, password: string) {
           try {
-            console.log(email, password)
+            
             const admin = await this.adminRepository.findByEmail(email);
 
             if(!admin) {

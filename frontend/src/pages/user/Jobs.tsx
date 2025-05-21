@@ -5,7 +5,6 @@ import Header from "../../components/user/Header";
 import toast from "react-hot-toast";
 import UserJobCard from "../../components/user/UserJobCard";
 import { getJobs } from "../../api/user/userJobs";
-import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
 
 const Jobs = () => {
@@ -42,7 +41,6 @@ const Jobs = () => {
       <Header />
       <div className="min-h-screen bg-gray-100 p-6">
 
-        <Link to='/' className="text-sm text-gray-400">home</Link>
 
            {/* Search */}
            <div className="p-4 flex flex-row justify-center items-center">

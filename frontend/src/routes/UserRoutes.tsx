@@ -10,18 +10,26 @@ import Jobs from "../pages/user/Jobs";
 import ViewJob from "../pages/user/ViewJob";
 import EditProfile from "../pages/user/EditProfile";
 import JobApplicationTracker from "../pages/user/MyJobs";
+import MessageApp from "../components/common/Message";
+import SpamReportForm from "../components/common/SpamReportForm";
+import Notification from "../components/user/Notification";
+import VideoCall from "../components/common/VideoCall";
 
 const UserRoutes = () => {
   return (
+    <>
     <Routes>
       <Route path="/" element={<HomePage />} />
-
-      <Route element={<ProtectedRoute />}>
+        <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<Profile />} />
         <Route path='/jobs' element={<Jobs/>} />
         <Route path='/viewJob' element={<ViewJob/>} />
         <Route path="/editProfile" element={<EditProfile />} />
         <Route path='/myJobs' element={<JobApplicationTracker />} />
+        <Route path='/chat/:role/:id' element={<MessageApp />} />
+        <Route path='/spam/:role/:id' element={<SpamReportForm />} />
+        <Route path='/notification' element={<Notification />} />
+        <Route path='/videoCall/:id' element={<VideoCall />} />
       </Route>
 
       <Route element={<PublicRoute />}>
@@ -30,6 +38,7 @@ const UserRoutes = () => {
         <Route path="/otp" element={<OtpVerification />} />
       </Route>
     </Routes>
+    </>
   );
 };
 

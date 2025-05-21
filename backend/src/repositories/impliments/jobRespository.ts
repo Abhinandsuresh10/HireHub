@@ -9,7 +9,7 @@ export class jobRepository extends BaseRepository<IJob> implements IjobRepositor
       constructor() {
         super(Job)
       }
-
+      
       async createJob(data: IJob): Promise<void> {
         try {
            await this.create(data);
@@ -18,6 +18,7 @@ export class jobRepository extends BaseRepository<IJob> implements IjobRepositor
           throw new Error('Error on adding job')
         }
        }
+
 
        async getJobsById(id: string, page: number, limit: number): Promise<{data: IJob[], total: number}> {
            try {
@@ -63,6 +64,17 @@ export class jobRepository extends BaseRepository<IJob> implements IjobRepositor
            } catch (error) {
             console.log(error);
             throw new Error('Error on updating job')
+           }
+       }
+
+       async getRoles(): Promise<string[] | null> {
+           try {
+             const jobs = await Job.find({}, { jobRole: 1, _id: 0 });
+             const roles = jobs.map((job: any) => job.jobRole).filter(Boolean);
+             return roles;
+           } catch (error) {
+            console.log('Error on gettign roles')
+            throw new Error('Error on getting roles')
            }
        }
 }

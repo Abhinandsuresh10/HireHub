@@ -200,6 +200,24 @@ export class recruiterService implements IRecruiterService {
             }
          }
      }
+
+     async getUserDetails(userId: string): Promise<{} | null> {
+        try {
+          const user = await this.recruiterRepository.findUserDataById(userId);
+          if(!user) {
+             throw new Error(HttpResponse.USER_NOT_FOUND);
+          }
+          return await this.recruiterRepository.getUserWithDetails(userId);
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error(error);
+                throw new Error(error.message);
+            } else {
+                console.error(HttpResponse.UNKNOWN_ERROR, error);
+                throw error;
+            }
+        }
+     }
 }
 
     

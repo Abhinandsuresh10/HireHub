@@ -43,5 +43,22 @@ export class userRepository extends BaseRepository<Iuser> implements IuserReposi
          }
      }
 
+     async updateSkills(userId: string, skills: []): Promise<Iuser | null> {
+         try {
+          console.log(userId)
+          const updatedUser = await User.findByIdAndUpdate( userId  ,
+            {
+              $addToSet: {
+                skills: { $each: [...skills] }
+              }
+            }, { new: true });
+         
+         return updatedUser;
+         } catch (error: any) {
+          console.log(error.message);
+          throw new Error('Error on updating user');
+         }
+     }
+
 
 }

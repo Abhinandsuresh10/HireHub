@@ -1,6 +1,5 @@
 import { Model, Document, FilterQuery, UpdateQuery } from "mongoose";
 import { IbaseRepositoryInterface } from '../interface/IbaseRepositoryInterface'
-import { ISkills } from "../../models/SkillsSchema";
 
 
 export class BaseRepository<T extends Document> implements IbaseRepositoryInterface<T> {

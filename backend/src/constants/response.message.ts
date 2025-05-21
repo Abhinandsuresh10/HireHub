@@ -73,5 +73,14 @@ export const HttpResponse = {
     ERROR_ADD_CATEGORY: 'Error adding category',
     SKILLS_GET_SUCCESS: 'Skills get successfully',
     CATEGORY_ALREADY_EXIST: 'Category already exists',
-    SKILLS_ADD_SUCCESS: 'Skills add successfully'
+    SKILLS_ADD_SUCCESS: 'Skills add successfully',
+    APPLICANTS_GET_SUCCESS: 'Applicants get successfully',
+    GET_FAIL: 'Failure on getting.',
+    SPAM_CREATE_SUCCESS:'Your report has been submitted successfully. Our team will review it shortly.',
+    REPORT_GET_SUCCESS: 'reports get successfully',
+    DOWNLOAD_SUCCESS: 'Download success',
+    INTERVIEW_SHEDULE_SUCCUSS: 'interview successfully sheduled',
+    INTERVIEW_GET_SUCCESS: 'interviews get successfully',
+    NOTIFICATION_GET_SUCCESS: 'notifications get successfully',
+    NOTIFICATION_DELETE_SUCCESS: 'notification deleted successfully'
 }

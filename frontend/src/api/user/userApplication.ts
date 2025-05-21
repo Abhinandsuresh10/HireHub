@@ -28,9 +28,39 @@ export const fetchIsApplied = async (userId: string, jobId: string) => {
 
 export const fetchAppliedJobs = async (userId: string, page: number, limit: number) => {
     try {
-        const response = ApplicationApi.get(`/appliedJobs?userId=${userId}&page=${page}&limit=${limit}`);
+        const response = await ApplicationApi.get(`/appliedJobs?userId=${userId}&page=${page}&limit=${limit}`);
         return response;
     } catch (error) {
         handleAxiosError(error)
     } 
   }
+
+export const getAplied = async(id: string, page: number, limit: number) => {
+  try {
+    const response = await ApplicationApi.get(`/getApplicants?recruiterId=${id}&page=${page}&limit=${limit}`);
+    return response.data
+  } catch (error) {
+    console.log(error);
+    throw handleAxiosError(error);
+  }
+}
+
+export const acceptApplication = async(id: string) => {
+  try {
+   const response = await ApplicationApi.patch(`/acceptApplication?id=${id}`);
+   return response; 
+  } catch (error) {
+    console.log(error);
+    throw handleAxiosError(error);
+  }
+}
+
+export const getApplication = async(id: string) => {
+  try {
+    const response = await ApplicationApi.get(`/getApplication?id=${id}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw handleAxiosError(error);
+  }
+}

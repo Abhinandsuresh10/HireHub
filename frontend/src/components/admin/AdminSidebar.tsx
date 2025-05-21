@@ -26,7 +26,7 @@ const Sidebar = () => {
             </Link>
           </li>
           <li className="mb-4">
-            <Link to='/reports' className="flex items-center justify-center lg:justify-start hover:bg-black px-4 py-2 rounded">
+            <Link to='/admin/spam' className="flex items-center justify-center lg:justify-start hover:bg-black px-4 py-2 rounded">
               <FaExclamationTriangle className="text-xl" />
               <span className="hidden lg:inline ml-3">Reports</span>
             </Link>

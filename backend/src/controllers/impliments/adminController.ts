@@ -1,4 +1,5 @@
 import { HttpResponse } from "../../constants/response.message";
+import { HttpStatus } from "../../constants/status.constants";
 import { Iadmin } from "../../models/AdminSchema";
 import { IAdminService } from "../../services/interface/IadminService";
 import { hashPassword } from "../../utils/bcrypt.util";
@@ -19,13 +20,13 @@ export class adminController {
           user.password = await hashPassword(user.password);
           await this.service.register(user);
 
-          res.status(201).json({ message: HttpResponse.SUCCESS_REGISTER });
+          res.status(HttpStatus.CREATED).json({ message: HttpResponse.SUCCESS_REGISTER });
           return;
         } catch (error: unknown) {
           if (error instanceof Error && error.message === HttpResponse.ADMIN_ALREADY_EXIST) {
-            res.status(400).json({ error: error.message }); 
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
         } else {
-            res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
         }
         }
       };
@@ -45,21 +46,21 @@ export class adminController {
         });
         
 
-        res.status(200).json({
+        res.status(HttpStatus.OK).json({
           accessToken,
           admin
       });
          } catch (error: unknown) {
           if (error instanceof Error) {
             if (error.message === HttpResponse.ADMIN_NOT_FOUND) {
-                res.status(404).json({ error: HttpResponse.ADMIN_NOT_FOUND });
+                res.status(HttpStatus.NOT_FOUND).json({ error: HttpResponse.ADMIN_NOT_FOUND });
                 return;
             } else if (error.message === HttpResponse.INVALID_PASSWORD) {
-                res.status(401).json({ error: HttpResponse.INVALID_PASSWORD});
+                res.status(HttpStatus.UNAUTHORIZED).json({ error: HttpResponse.INVALID_PASSWORD});
                 return;
              } 
            }
-          res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
          }
     }
 
@@ -75,10 +76,10 @@ export class adminController {
          } catch (error) {
           if(error instanceof Error) {
             if(error.message === HttpResponse.UNABLE_FETCH_USERS) {
-              res.status(400).json({message: HttpResponse.UNABLE_FETCH_USERS})
+              res.status(HttpStatus.BAD_REQUEST).json({message: HttpResponse.UNABLE_FETCH_USERS})
             }
           }
-          res.status(500).json({error: HttpResponse.SERVER_ERROR})
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({error: HttpResponse.SERVER_ERROR})
          }
     }
 
@@ -91,15 +92,15 @@ export class adminController {
        const search = req.query.search as string || '';
 
        const { recruiters , total} = await this.service.getRecruiters(page, limit, search);
-       res.status(200).json({message: HttpResponse.RECRUITER_FETCH_SUCCESS, recruiters, total});
+       res.status(HttpStatus.OK).json({message: HttpResponse.RECRUITER_FETCH_SUCCESS, recruiters, total});
 
       } catch (error) {
        if(error instanceof Error) {
          if(error.message === HttpResponse.UNABLE_FETCH_RECRUITERS) {
-           res.status(400).json({message: HttpResponse.UNABLE_FETCH_RECRUITERS})
+           res.status(HttpStatus.BAD_REQUEST).json({message: HttpResponse.UNABLE_FETCH_RECRUITERS})
          }
        }
-       res.status(500).json({error: HttpResponse.SERVER_ERROR})
+       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({error: HttpResponse.SERVER_ERROR})
       }
  }
 
@@ -108,26 +109,26 @@ export class adminController {
         const { id, status } = req.body;
   
         if (!id || typeof status !== "boolean") {
-          res.status(400).json({ message: HttpResponse.INVALID_REQUEST_DATA });
+          res.status(HttpStatus.BAD_REQUEST).json({ message: HttpResponse.INVALID_REQUEST_DATA });
           return;
         }
   
         const updatedUser = await this.service.userBlockUnblock(id, status);
-        res.status(200).json({
+        res.status(HttpStatus.OK).json({
           message: HttpResponse.USER_STATUS_UPDATE_SUCCESS,
           user: updatedUser,
         });
       } catch (error) {
         if (error instanceof Error) {
           if (error.message === HttpResponse.USER_NOT_FOUND) {
-            res.status(404).json({ message: HttpResponse.USER_NOT_FOUND });
+            res.status(HttpStatus.NOT_FOUND).json({ message: HttpResponse.USER_NOT_FOUND });
             return;
           } else if (error.message === HttpResponse.USER_STATUS_UPDATE_FAIL) {
-            res.status(400).json({ message: HttpResponse.USER_STATUS_UPDATE_FAIL });
+            res.status(HttpStatus.BAD_REQUEST).json({ message: HttpResponse.USER_STATUS_UPDATE_FAIL });
             return;
           }
         }
-        res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
       }
     };
 
@@ -136,26 +137,26 @@ export class adminController {
         const { id, status } = req.body;
   
         if (!id || typeof status !== "boolean") {
-          res.status(400).json({ message: HttpResponse.INVALID_REQUEST_DATA });
+          res.status(HttpStatus.BAD_REQUEST).json({ message: HttpResponse.INVALID_REQUEST_DATA });
           return;
         }
   
         const updatedRecruiters = await this.service.recruiterBlockUnblock(id, status);
-        res.status(200).json({
+        res.status(HttpStatus.OK).json({
           message: HttpResponse.RECRUITER_STATUS_UPDATE_SUCCESS,
           recruiter: updatedRecruiters,
         });
       } catch (error) {
         if (error instanceof Error) {
           if (error.message === HttpResponse.RECRUITER_NOT_FOUND) {
-            res.status(404).json({ message: HttpResponse.RECRUITER_NOT_FOUND });
+            res.status(HttpStatus.NOT_FOUND).json({ message: HttpResponse.RECRUITER_NOT_FOUND });
             return;
           } else if (error.message === HttpResponse.RECRUITER_STATUS_UPDATE_FAIL) {
-            res.status(400).json({ message: HttpResponse.RECRUITER_STATUS_UPDATE_SUCCESS });
+            res.status(HttpStatus.BAD_REQUEST).json({ message: HttpResponse.RECRUITER_STATUS_UPDATE_SUCCESS });
             return;
           }
         }
-        res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
       }
     };
 }

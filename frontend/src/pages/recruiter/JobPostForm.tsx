@@ -9,6 +9,7 @@ import { SentJobData } from "../../api/recruiter/jobPost";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { RootState } from "@/store/store";
 
 type FormData = z.infer<typeof jobSchema>
 
@@ -20,7 +21,7 @@ const JobPostForm = () => {
     resolver: zodResolver(jobSchema) 
   });
   const navigate = useNavigate();
-  const recruiter = useSelector(state => state.recruiterAuth.recruiter);
+  const recruiter = useSelector((state:RootState) => state.recruiterAuth.recruiter);
   const onsubmit = async (data: FormData) => {
     try {
       const response = await SentJobData(data, recruiter._id as string, recruiter.company);

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { HttpResponse } from "../../constants/response.message";
 import { ISkillsService } from "../../services/interface/ISkillsService";
+import { HttpStatus } from "../../constants/status.constants";
 
 
 export class skillsController {
@@ -14,12 +15,12 @@ export class skillsController {
     try {
        const category = req.body.category as string;
        const response = await this.service.addCategory(category);
-       res.status(200).json({message: HttpResponse.CATEGORY_ADD_SUCCESS , response})
+       res.status(HttpStatus.OK).json({message: HttpResponse.CATEGORY_ADD_SUCCESS , response})
     } catch (error) {
       if (error instanceof Error && error.message === HttpResponse.CATEGORY_ALREADY_EXIST) {
-          res.status(400).json({ error: error.message }); 
+          res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
       } else {
-          res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
       }
     }
    }
@@ -27,12 +28,12 @@ export class skillsController {
    public getSkills = async(req: Request, res: Response): Promise<void> => {
     try {
         const skills = await this.service.getSkills();
-        res.status(200).json({message: HttpResponse.SKILLS_GET_SUCCESS, skills});
+        res.status(HttpStatus.OK).json({message: HttpResponse.SKILLS_GET_SUCCESS, skills});
     } catch (error) {
       if (error instanceof Error) {
-          res.status(400).json({ error: error.message }); 
+          res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
       } else {
-          res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
       }
     }
    }
@@ -42,12 +43,12 @@ export class skillsController {
        const skill = req.body.skill as string;
        const id = req.query.categoryId as string;
        const skills = await this.service.addSkills(id, skill);
-       res.status(201).json({message: HttpResponse.SKILLS_ADD_SUCCESS, skills})
+       res.status(HttpStatus.CREATED).json({message: HttpResponse.SKILLS_ADD_SUCCESS, skills})
     } catch (error) {
        if (error instanceof Error) {
-           res.status(400).json({ error: error.message }); 
+           res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
        } else {
-           res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
        }  
      }
    }
@@ -57,13 +58,13 @@ export class skillsController {
         const skill = req.body.skill as string;
         const id = req.query.categoryId as string;
         await this.service.deleteSkill(id, skill);
-        res.status(201).json({message: 'success'})
+        res.status(HttpStatus.CREATED).json({message: 'success'})
     } catch (error) {
-      if (error instanceof Error) {
-          res.status(400).json({ error: error.message }); 
-      } else {
-          res.status(500).json({ error: HttpResponse.SERVER_ERROR });
-       }   
+        if (error instanceof Error) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+        } else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        } 
      }
    }
 
@@ -71,13 +72,13 @@ export class skillsController {
       try {
         const id = req.query.categoryId as string;
         await this.service.deleteCategory(id);
-        res.status(201).json({message: 'category delete success'})
+        res.status(HttpStatus.CREATED).json({message: 'category delete success'})
       } catch (error) {
         if (error instanceof Error) {
-            res.status(400).json({ error: error.message }); 
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
         } else {
-            res.status(500).json({ error: HttpResponse.SERVER_ERROR });
-         } 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        }
       }
    }
 }

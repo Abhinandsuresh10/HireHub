@@ -23,7 +23,9 @@ userRoutes.post('/verifyForgotOtp', userControllers.verifyForgotOtp);
 userRoutes.post('/setNewPassword', userControllers.setNewPassword);
 userRoutes.post('/googleLogin',userControllers.googleLogin);
 userRoutes.post('/addResume', verifyJWT, upload.single('resume'), userControllers.addResume);
-userRoutes.post('/editUser', verifyJWT, upload.single('image'), userControllers.editUser)
+userRoutes.post('/editUser', verifyJWT, upload.single('image'), userControllers.editUser);
+userRoutes.post('/addSkills', verifyJWT, userControllers.addSkills);
+
 
 
 

@@ -1,18 +1,20 @@
 import { useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../../store/slices/recruiterSlice";
 import toast from "react-hot-toast";
 import { removeRecruiter } from "../../store/slices/recruiterDataSlice";
+import { MessagesSquare } from "lucide-react";
+import { RootState } from "@/store/store";
 
 const RecruiterHeader = () => {
 
     const boxRef = useRef(null);
   
-      
+    const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const recruiter = useSelector((state) => state.recruiters.recruiter);
+    const recruiter = useSelector((state: RootState) => state.recruiters.recruiter);
 
     const handleDropdownToggle = () => {
       setDropdownOpen(!dropdownOpen); 
@@ -50,6 +52,9 @@ const RecruiterHeader = () => {
             {!recruiter && <Link to='/recruiter/login' className="bg-blue-600 text-white px-4 py-2 rounded-lg">Login</Link> }
             {recruiter && (
               <div className="relative group">
+                <button className="w-2 h-4 mr-6" onClick={() => navigate(`/recruiter/chat/recruiter/${recruiter._id}`)}>
+                  <MessagesSquare/>
+                </button>
               <button onClick={handleDropdownToggle} className="transition-all duration-500 ease-in-out hover:bg-gray-100 text-black px-4 py-2 rounded-lg"
               >{recruiter.email.split('@')[0]} ↓</button> 
               {dropdownOpen && (
@@ -86,6 +91,7 @@ const RecruiterHeader = () => {
                   <Link to="/recruiter/jobs" className="text-gray-800 hover:text-blue-600">Manage Jobs</Link>
                   <a href="#companies" className="text-gray-800 hover:text-blue-600">Dashboard</a>
                   <Link to='/recruiter/profile' className="text-gray-800 hover:text-blue-600">Profile</Link>
+                  <Link to='/recruiter/chat' className="text-gray-800 hover:text-blue-600">Chat</Link>
                   <button 
                 onClick={handleLogut}
                 className="block w-full bg-gray-300 rounded-lg text-left px-4 py-2 text-gray-800"

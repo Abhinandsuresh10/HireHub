@@ -2,21 +2,66 @@ import { useDispatch, useSelector } from "react-redux";
 import Footer from "../../components/user/Footer";
 import Header from "../../components/user/Header";
 import { FaUserCircle } from "react-icons/fa";
-import { useState } from "react";
-import { addResume } from "../../api/user/users";
+import { useEffect, useState } from "react";
+import { addResume, addUserSkills } from "../../api/user/users";
 import toast from "react-hot-toast";
 import { addUser } from "../../store/slices/userDataSlice";
 import { Link, useNavigate } from "react-router-dom";
 import WorkExperience from "./AddExperience";
 import Education from "./Education";
+import { getSkills } from "../../api/admin/skills";
+import { RootState } from "../../store/store";
+import PreferredJobs from "./PreferredJobs";
 
 
 const Profile = () => {
-  const user = useSelector(state => state.users.user);
+  const user = useSelector((state: RootState) => state.users.user);
   const [resume , setResume] = useState(null);
-
+  const [skills, setSkills] = useState([]);
+  const [selectedSkill, setSelectedSkill] = useState(null);
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [added, setAdded] = useState(false);
+  const [showPreferredJobs ,setShowPreferredJobs] = useState(false)
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    
+    const fetchSkills = async () => {  
+      const response = await getSkills();
+      if(response?.data) {
+        setSkills(response.data.skills);
+      }
+    }
+    fetchSkills();
+  }, [])
+
+  useEffect(() => {
+    setSelectedSkill(skills[0])
+  },[skills])
+
+  const handleSKills = async() => {
+    if(selectedSkills.length > 0) {
+    const response = await addUserSkills(user._id, selectedSkills as []);
+    if(response.data) {
+      setAdded(false)
+      toast.success(response.data.message);
+      dispatch(addUser({user: response.data.user}));
+    }
+    } else {
+      toast('ℹ️ Please select a skill', {
+        style: {
+          padding: '4px',
+          color: '#2f86eb', 
+        },
+        iconTheme: {
+          primary: '#2f86eb',
+          secondary: '#e0efff',
+        },
+      });
+    }
+  }
 
   const handleResume = async() => {
     if(!resume) toast.error('please select a resume')
@@ -68,11 +113,11 @@ const Profile = () => {
              <Link to='/myJobs' className="px-4 py-1.5 bg-gray-200 text-sm text-gray-700 rounded-lg">
                My Jobs
              </Link>
-             <button className="px-4 py-1.5 bg-gray-200 text-sm text-gray-700 rounded-lg">
+             <button onClick={() => setShowPreferredJobs(true)} className="px-4 py-1.5 bg-gray-200 text-sm text-gray-700 rounded-lg">
                Preferred Jobs
              </button>
            </div>
-
+          <PreferredJobs open={showPreferredJobs} onClose={() => setShowPreferredJobs(false)} />
           </div>
   
           {/* Work Experience & Education */}
@@ -84,26 +129,51 @@ const Profile = () => {
         </div>
   
         {/* Skills Section */}
-        <div className="mt-6 bg-white shadow-2xl rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-3">Skills</h3>
-          <div className="flex flex-wrap gap-2">
-            {["JavaScript", "MongoDB", "Node.js", "Express.js", "React.js"].map(
-              (skill, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-200 text-gray-700 px-3 py-1 text-sm rounded-lg"
-                >
-                  {skill}
-                </span>
-              )
-            )}
-            <button className="ml-2 text-blue-500">Add More +</button>
-          </div>
+         <div className="mt-6 bg-white shadow-2xl rounded-xl p-6">
+          {added ? (<>
+            <h3 className="text-lg font-semibold mb-3">add SKills</h3>
+           <select
+             onChange={(e) => {
+               const selectedCategory = skills.find(
+                 (skill) => skill.category === e.target.value
+               );
+               setSelectedSkill(selectedCategory || null);
+             }}
+             className="border border-gray-300 rounded-lg px-3 py-2 w-full mb-4"
+           >
+             {skills.map((item, index) => (
+               <option key={index} value={item.category}>
+                 {item.category}
+               </option>
+             ))}
+           </select>
+           <div className="flex flex-wrap gap-2">
+          {selectedSkill?.skills?.map((skill, index) => (
+            <label key={index} className="bg-gray-200 text-gray-700 px-3 py-1 text-sm rounded-lg flex items-center gap-1">
+              <input type="checkbox" value={skill} className="mr-1" onChange={(e) => setSelectedSkills((prev) => e.target.checked ? [...prev, skill] :  prev.filter((s) => s !== skill))} />
+              {skill}
+            </label>
+          ))}
+          <button className="ml-2 text-white bg-blue-500 rounded-lg text-sm p-1" onClick={handleSKills}>Add +</button>
         </div>
-  
+          </>) : (<>
+            <h3 className="text-lg font-semibold mb-3 mt-2">SKills</h3>
+          <div className="flex flex-wrap gap-2">
+          {user?.skills?.map((skill, index) => (
+              <span className="mr-1 bg-gray-200 text-gray-700 px-3 py-1 text-sm rounded-lg flex items-center gap-1" >
+              {skill}
+            </span>
+          ))}
+          <button className="text-sm text-white rounded-lg p-1 bg-green-500" onClick={() => setAdded(true)}>{user?.skills?.length > 0 ? 'Add More' : 'Add'}</button>
+          </div>
+          </>)}
+          
+       
+         </div>
+           
         {/* Resume & Portfolio */}
         <div className="mt-6 bg-white shadow-2xl rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-3">Add Your Resume & Portfolio</h3>
+          <h3 className="text-lg font-semibold mb-3">Add Your Resume </h3>
           <p className="text-gray-600 text-sm">
             Showcase your skills and let jobs and companies find you.
           </p>
@@ -111,9 +181,6 @@ const Profile = () => {
           <p className="text-gray-600 text-sm">Get customized job suggestions.</p>
   
           <div className="mt-4">
-            <a href="https://yourportfolio.com" className="text-blue-500">
-              🔗 https://yourportfolio.com
-            </a>
           </div>
   
           <div className="mt-4">

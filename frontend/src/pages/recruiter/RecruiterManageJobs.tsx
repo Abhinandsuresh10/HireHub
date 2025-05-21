@@ -2,20 +2,43 @@ import { useEffect, useState } from "react";
 import RecruiterHeader from "../../components/recruiter/RecruiterHeader";
 import Footer from "../../components/user/Footer";
 import { Link } from "react-router-dom";
-import JobsCard from "../../components/recruiter/jobsCard";
+import JobsCard from "../../components/recruiter/JobsCard";
 import { deleteJob, getJobs } from "../../api/recruiter/jobPost";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import { RootState } from "../../store/store";
+import { getAplied } from "../../api/user/userApplication";
+import ApplicantCard from "../../components/recruiter/ApplicantCard";
+import { getInterviews } from "../../api/recruiter/interview";
+import InterviewCard from "../../components/recruiter/InterviewCard";
+
+
+interface Interview {
+  _id: string;
+  username: string;
+  jobRole: string;
+  interviewer: string;
+  date: Date;
+  time: string;
+}
 
 const RecruiterManageJobs = () => {
   const [activeTab, setActiveTab] = useState("postJob");
   const [jobs, setJobs] = useState([])
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(1);
+  const [appliedPage, setAppliedPage] = useState(1);
+  const [appliedTotal, setAppliedTotal] = useState(1);
+  const [interviewPage, setInterviewPage] = useState(1);
+  const [interviewTotal, setInterviewTotal] = useState(1);
+  const [applicants, setApplicant] = useState([]);
+  const [interviews, setInterview] = useState([])
 
   const limit = 6;
-  const recruiter = useSelector(state => state.recruiterAuth.recruiter);
+  const recruiter = useSelector((state:RootState) => state.recruiters.recruiter);
+  
   useEffect(() => {
+  
   const fetchJobs = async() => {
     try {
       const response = await getJobs(recruiter._id, page, limit);
@@ -30,13 +53,41 @@ const RecruiterManageJobs = () => {
   fetchJobs();
   },[recruiter, page]);
 
+  useEffect(() => {
+  
+  const fetchApplied = async() => {
+    try {
+    const response = await getAplied(recruiter._id, appliedPage, limit);
+    if(response.data) {
+      setAppliedTotal(response.total);
+      setApplicant(response.data);
+    }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  fetchApplied();
+  },[recruiter, appliedPage])
 
+  useEffect(() => {
+    
+    const fetchInterviews = async () => {
+    const response = await getInterviews(recruiter._id, interviewPage, limit);
+    
+    if(response.data) {
+      setInterviewTotal(response.total)
+      setInterview(response.data);
+    }
+    }
+    fetchInterviews()
+  },[recruiter, interviewPage])
+
+ 
   const handleDeleteJob = async (id: string) => {
     try {
       const response = await deleteJob(id);
       if(response) {
         setJobs((jobs) => jobs.filter((job) => job._id !== id));
-        console.log(response.data.Message)
         toast.success(response.data.Message)
       }
     } catch (error) {
@@ -44,16 +95,6 @@ const RecruiterManageJobs = () => {
     }
   }
 
-
-  const applicants = [
-    { id: 1, name: "John Doe", email: "john@example.com", job: "React Developer" },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", job: "Fullstack Developer" },
-  ];
-
-  const interviews = [
-    { id: 1, candidate: "John Doe", job: "React Developer", date: "2025-04-01", time: "10:00 AM" },
-    { id: 2, candidate: "Jane Smith", job: "Fullstack Developer", date: "2025-04-02", time: "2:00 PM" },
-  ];
 
   return (
     <>
@@ -140,16 +181,31 @@ const RecruiterManageJobs = () => {
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Applications</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {applicants.map((applicant) => (
-                  <div
-                    key={applicant.id}
-                    className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 bg-gray-50"
-                  >
-                    <p className="font-semibold text-lg text-gray-800">{applicant.name}</p>
-                    <p className="text-sm text-gray-500">{applicant.email}</p>
-                    <p className="text-sm text-gray-500">Applied for: {applicant.job}</p>
-                  </div>
+                   <ApplicantCard applicant={applicant} />
                 ))}
               </div>
+              {applicants.length > 0 && (
+            <div className="flex justify-center items-center gap-4 mt-6">
+              <button
+                className={`bg-black text-white rounded-lg px-4 py-2 ${appliedPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => setAppliedPage((prev) => Math.max(prev - 1, 1))}
+                disabled={appliedPage === 1}
+              >
+                Prev
+              </button>
+              <span>Page {appliedPage}</span>
+              <button
+                className={`bg-black text-white rounded-lg px-4 py-2 ${appliedPage * limit >= appliedTotal ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => setAppliedPage((prev) => prev + 1)}
+                disabled={appliedPage * limit >= appliedTotal}
+              >
+                Next
+              </button>
+            </div>
+          )}
+
+          {/* No Jobs Found Message */}
+          {applicants.length === 0 && <p className="text-xl mt-4">No applicants found</p>}
             </>
           )}
 
@@ -157,18 +213,29 @@ const RecruiterManageJobs = () => {
             <>
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Scheduled Interviews</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {interviews.map((interview) => (
-                  <div
-                    key={interview.id}
-                    className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 bg-gray-50"
-                  >
-                    <p className="font-semibold text-lg text-gray-800">{interview.candidate}</p>
-                    <p className="text-sm text-gray-500">Job: {interview.job}</p>
-                    <p className="text-sm text-gray-500">Date: {interview.date}</p>
-                    <p className="text-sm text-gray-500">Time: {interview.time}</p>
-                  </div>
+                {interviews.map((interview:Interview) => (
+                  <InterviewCard interview={interview} />
                 ))}
               </div>
+              {interviews.length > 0 && (
+            <div className="flex justify-center items-center gap-4 mt-6">
+              <button
+                className={`bg-black text-white rounded-lg px-4 py-2 ${interviewPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => setInterviewPage((prev) => Math.max(prev - 1, 1))}
+                disabled={interviewPage === 1}
+              >
+                Prev
+              </button>
+              <span>Page {interviewPage}</span>
+              <button
+                className={`bg-black text-white rounded-lg px-4 py-2 ${interviewPage * limit >= interviewTotal ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => setAppliedPage((prev) => prev + 1)}
+                disabled={interviewPage * limit >= interviewTotal}
+              >
+                Next
+              </button>
+            </div>
+          )}
             </>
           )}
         </div>

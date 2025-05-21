@@ -6,4 +6,5 @@ export interface IuserRepositoryInterface {
     findByEmail(email: string): Promise<Iuser | null>;
     updateUser(id: string, userData: Iuser): Promise<Iuser | null>;
     findUserById(userId: string): Promise<Iuser | null>;
+    updateSkills(userId: string, skills: []): Promise<Iuser | null>
 }

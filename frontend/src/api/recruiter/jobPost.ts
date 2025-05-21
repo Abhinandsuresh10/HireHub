@@ -47,12 +47,29 @@ export const fetchJobById = async(id: string) => {
 
 export const EditJobData = async(data: object, id: string) => {
   try {
-
-      const response = JobApi.post('/editJob', {data, id})
-      return response;
-
+   const response = await JobApi.post('/editJob', {data, id})
+   return response;
   } catch (error) {
     console.log('editJob error', error);
     throw handleAxiosError(error);  
+  }
+}
+
+
+export const getRoles = async() => {
+  try {
+   const response = await JobApi.get('/getRoles');
+   return response; 
+  } catch (error) {
+    throw handleAxiosError(error);
+  }
+}
+
+export const getTitles = async() => {
+  try {
+    const response = await JobApi.get('/getTitles');
+    return response;
+  } catch (error) {
+    throw handleAxiosError(error);
   }
 }

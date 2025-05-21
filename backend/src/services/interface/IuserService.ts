@@ -11,4 +11,5 @@ export interface IUserService {
     googleLogin(userToken: { user: string }): Promise<object>;
     addResumeUrl(userId: string, resumeUrl: string): Promise<Iuser | null>;
     editUser(userData: Iuser , userId: string): Promise<Iuser | null>;
+    addSkill(userId: string, skills: []): Promise<Iuser | null>
 }

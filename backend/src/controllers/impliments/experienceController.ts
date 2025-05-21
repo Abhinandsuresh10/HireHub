@@ -2,6 +2,7 @@ import { HttpResponse } from "../../constants/response.message";
 import { Request, Response } from "express";
 import { IExperienceService } from '../../services/interface/IexperienceService'
 import { IExperience } from "../../models/ExperienceSchema";
+import { HttpStatus } from "../../constants/status.constants";
 
 export class experienceController {
     private service: IExperienceService;
@@ -15,12 +16,12 @@ export class experienceController {
             const experience = req.body as IExperience
             const userId = req.query.userId as string;
             const response = await this.service.addExperience(userId , experience);
-            res.status(200).json({message: HttpResponse.EXPEREIENCE_ADD_SUCCESS, response})
+            res.status(HttpStatus.OK).json({message: HttpResponse.EXPEREIENCE_ADD_SUCCESS, response})
         } catch (error) {
             if (error instanceof Error) {
-                res.status(400).json({ error: error.message }); 
+                res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
             } else {
-                res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
             } 
         }
     }
@@ -29,12 +30,12 @@ export class experienceController {
         try {
             const userId = req.query.userId as string;
             const experiences = await this.service.getExperience(userId);
-            res.status(200).json({message: HttpResponse.EXPEREIENCE_GET_SUCCESS, experiences})
+            res.status(HttpStatus.OK).json({message: HttpResponse.EXPEREIENCE_GET_SUCCESS, experiences})
         } catch (error) {
           if (error instanceof Error) {
-              res.status(400).json({ error: error.message }); 
+              res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
           } else {
-              res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+              res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
           }   
         }
     }
@@ -43,12 +44,12 @@ export class experienceController {
         try {
            const id = req.query.id as string;
            await this.service.deleteExperience(id);
-           res.status(200).json({message: HttpResponse.EXPEREIENCE_DELETE_SUCCESS}) 
+           res.status(HttpStatus.OK).json({message: HttpResponse.EXPEREIENCE_DELETE_SUCCESS}) 
         } catch (error) {
           if (error instanceof Error) {
-              res.status(400).json({ error: error.message }); 
+              res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
           } else {
-              res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+              res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
           }   
         }
     }

@@ -7,6 +7,7 @@ import AdminProtectedRoute from "./AdminProtectedRoutes";
 import Users from "../pages/admin/Users";
 import Recruiters from "../pages/admin/Recruiters";
 import { Skills } from "../pages/admin/AddSkills";
+import SpamReports from "../pages/admin/SpamReports";
 
 
 const AdminRoutes = () => {
@@ -17,6 +18,7 @@ const AdminRoutes = () => {
         <Route path='/users' element={<Users/>} />
         <Route path='/recruiters' element={<Recruiters/>} />
         <Route path="/skills" element={<Skills />} />
+        <Route path="/spam" element={<SpamReports />} />
         </Route>
 
         <Route element={<AdminPublicRoute />} >

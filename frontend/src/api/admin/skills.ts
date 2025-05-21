@@ -43,3 +43,4 @@ export const deleteCategories = async(categoryId: string) => {
       handleAxiosError(error);
    }
 }
+

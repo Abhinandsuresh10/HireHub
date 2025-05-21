@@ -13,3 +13,13 @@ export const editRecruiter = async (recruiterId: string, data: FormData) => {
         handleAxiosError(error)
     }
 }
+
+export const fetchUserAndDetails = async (userId: string) => {
+    try {
+       const response = await RecruiterAPI.get(`/getUserDetails?userId=${userId}`);
+       
+       return response; 
+    } catch (error) {
+       throw handleAxiosError(error); 
+    }
+}

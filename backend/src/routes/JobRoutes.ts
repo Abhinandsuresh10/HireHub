@@ -17,5 +17,6 @@ jobRoutes.patch('/deleteJob', verifyJWT ,jobControllers.deleteJob);
 jobRoutes.get('/userGetJob', verifyJWT, jobControllers.userGetJob);
 jobRoutes.get('/getJobById', verifyJWT, jobControllers.getJobById);
 jobRoutes.post('/editJob', verifyJWT, jobControllers.editJob);
+jobRoutes.get('/getRoles', verifyJWT, jobControllers.getRoles);
 
 export default jobRoutes;

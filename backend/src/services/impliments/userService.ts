@@ -213,6 +213,18 @@ export class userService implements IUserService {
         }
       }
 
+      async addSkill(userId: string, skills: []): Promise<Iuser | null> {
+          try {
+            const user = await this.userRepository.findUserById(userId);
+            if(!user) {
+                throw new Error(HttpResponse.USER_NOT_FOUND);
+            }
+            return await this.userRepository.updateSkills(userId, skills);
+          } catch (error: any) {
+            throw new Error(error.message);
+          }
+      }
+
 }
 
     

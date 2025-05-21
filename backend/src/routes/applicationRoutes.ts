@@ -16,5 +16,8 @@ const applicationRoutes = express.Router();
 applicationRoutes.post('/apply', verifyJWT, applicationControllers.applyJob);
 applicationRoutes.get('/isApplied', verifyJWT, applicationControllers.isApplied);
 applicationRoutes.get('/appliedJobs', verifyJWT, applicationControllers.appliedJobs);
+applicationRoutes.get('/getApplicants', verifyJWT, applicationControllers.getApplicants);
+applicationRoutes.patch('/acceptApplication', verifyJWT, applicationControllers.acceptApplication);
+applicationRoutes.get('/getApplication', verifyJWT, applicationControllers.getApplicantion);
 
 export default applicationRoutes;

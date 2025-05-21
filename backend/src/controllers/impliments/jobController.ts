@@ -1,4 +1,5 @@
 import { HttpResponse } from "../../constants/response.message";
+import { HttpStatus } from "../../constants/status.constants";
 import { IJob } from "../../models/JobSchema";
 import { IjobService } from "../../services/interface/IjobService";
 import { Request, Response } from "express";
@@ -17,12 +18,12 @@ export class jobController {
           data.recruiterId = req.body.id;
           data.company = req.body.company;
           await this.service.postJob(data);
-          res.status(201).json({message: HttpResponse.JOB_POST_SUCCESS});
+          res.status(HttpStatus.CREATED).json({message: HttpResponse.JOB_POST_SUCCESS});
         } catch (error) {
           if (error instanceof Error) {
-            res.status(400).json({ error: error.message }); 
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
         } else {
-            res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
         }
         }
       } 
@@ -38,9 +39,9 @@ export class jobController {
         
         } catch (error) {
             if (error instanceof Error) {
-                res.status(400).json({ error: error.message }); 
+                res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
             } else {
-                res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
             }
         }
       }
@@ -52,9 +53,9 @@ export class jobController {
             res.status(200).json({Message: HttpResponse.JOB_DELETE_SUCCESS})
            } catch (error) {
             if (error instanceof Error) {
-                res.status(400).json({ error: error.message }); 
+                res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
             } else {
-                res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
             }
            }
       }
@@ -69,9 +70,9 @@ export class jobController {
             
         } catch (error) {
             if (error instanceof Error) {
-                res.status(400).json({ error: error.message }); 
+                res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
             } else {
-                res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
             }
         }
       }
@@ -83,10 +84,10 @@ export class jobController {
             res.status(200).json({message: HttpResponse.JOBS_FETCH_SUCCESS, job});
         } catch (error) {
             if (error instanceof Error) {
-                res.status(400).json({ error: error.message }); 
+                res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
             } else {
-                res.status(500).json({ error: HttpResponse.SERVER_ERROR });
-            } 
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+            }
         }
       }
 
@@ -98,10 +99,23 @@ export class jobController {
             res.status(200).json({message: HttpResponse.JOB_EDIT_SUCCESS})
         } catch (error) {
             if (error instanceof Error) {
-                res.status(400).json({ error: error.message }); 
+                res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
             } else {
-                res.status(500).json({ error: HttpResponse.SERVER_ERROR });
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
             } 
+        }
+      }
+
+      public getRoles = async(req: Request, res: Response): Promise<void> => {
+        try {
+           const roles = await this.service.getRoles();
+           res.status(HttpStatus.OK).json({message: HttpResponse.JOBS_FETCH_SUCCESS, roles}) 
+        } catch (error) {
+          if (error instanceof Error) {
+              res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+          } else {
+              res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+          } 
         }
       }
 

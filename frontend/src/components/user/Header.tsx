@@ -1,9 +1,11 @@
   import { useRef, useState } from "react"
   import { useDispatch, useSelector } from "react-redux";
-  import { Link } from "react-router-dom";
+  import { Link, useNavigate } from "react-router-dom";
   import { logout } from "../../store/slices/userSlice";
   import toast from "react-hot-toast";
 import { removeUser } from "../../store/slices/userDataSlice";
+import {  Inbox, MessagesSquare } from "lucide-react";
+import { RootState } from "../../store/store";
 
   const Header = () => {
     const boxRef = useRef(null);
@@ -11,10 +13,10 @@ import { removeUser } from "../../store/slices/userDataSlice";
       
       const [menuOpen, setMenuOpen] = useState(false);
       const [dropdownOpen, setDropdownOpen] = useState(false);
-      const user = useSelector((state) => state.users.user);
+      const user = useSelector((state: RootState) => state.users.user);
       
       
-
+      const navigate = useNavigate();
       const handleDropdownToggle = () => {
         setDropdownOpen(!dropdownOpen); 
       };
@@ -50,7 +52,13 @@ import { removeUser } from "../../store/slices/userDataSlice";
           <div className="hidden md:flex items-center space-x-4">
             {!user && <Link to='/login' className="bg-blue-600 text-white px-4 py-2 rounded-lg">Login</Link> }
             {user && (
-              <div className="relative group">
+              <div className="relative group flex items-center space-x-2">
+              <button className="w-6 h-6 mt-2 flex items-center justify-center" onClick={() => navigate('/notification')} title="Notifications">
+                 <Inbox />
+              </button>
+                 <button className="w-2 h-4 mr-6" onClick={() => navigate(`/chat/user/${user._id}`)}>
+                  <MessagesSquare/>
+                </button>
               <button onClick={handleDropdownToggle} className="transition-all duration-500 ease-in-out hover:bg-gray-100 text-black px-4 py-2 rounded-lg"
               >{user.email.split('@')[0]} ↓</button> 
               {dropdownOpen && (
@@ -87,6 +95,7 @@ import { removeUser } from "../../store/slices/userDataSlice";
                   <Link to='/jobs' className="text-gray-800 hover:text-blue-600">Jobs</Link>
                   <a href="#companies" className="text-gray-800 hover:text-blue-600">Companies</a>
                   <Link to='/profile' className="text-gray-800 hover:text-blue-600">Profile</Link>
+                  <Link to='/chat' className="text-gray-800 hover:text-blue-600">Chat</Link>
                   <button 
                 onClick={handleLogut}
                 className="block w-full bg-gray-300 rounded-lg text-left px-4 py-2 text-gray-800"

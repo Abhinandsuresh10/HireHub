@@ -9,4 +9,5 @@ export interface IjobRepositoryInterface {
     findAllJobs(page: number, limit: number, search: string): Promise<{data: IJob[]; total: number}>;
     getAjobById(id: string): Promise<IJob | null>;
     editJob(id: string, data: IJob): Promise<void>;
+    getRoles(): Promise<string[] | null>
 }

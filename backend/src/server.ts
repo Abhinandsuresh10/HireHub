@@ -1,4 +1,4 @@
-    import express, { application } from "express";
+    import express from "express";
     import dotenv from "dotenv";
     import cors from "cors";
     import connectDB from "./config/db";
@@ -12,12 +12,20 @@
     import experienceRoutes from "./routes/experienceRoutes";
     import educationRoutes from "./routes/educationRoutes";
     import skillRoutes from "./routes/skillRoutes";
+    import chatRoutes from "./routes/chatRoutes";
+    import spamRoutes from "./routes/spamRoutes";
+    import interviewRoutes from "./routes/interviewRoutes";
+    import { Server } from "socket.io";
+    import http from 'http'
+    import { setupSocket } from "./utils/socket";
+    import NotificationRoutes from "./routes/NotificationRoutes";
+
 
     dotenv.config();
     const app = express();
     
     app.use(cors({
-        origin: "http://localhost:5173",
+        origin: ["http://localhost:5173", "*"],
         credentials: true
     }));
     
@@ -43,8 +51,23 @@
     app.use('/api/experience', experienceRoutes);
     app.use('/api/education', educationRoutes);
     app.use('/api/skills', skillRoutes);
+    app.use('/api/chats', chatRoutes);
+    app.use('/api/spam', spamRoutes);
+    app.use('/api/interview', interviewRoutes);
+    app.use('/api/notification', NotificationRoutes)
+
+    const server = http.createServer(app);
+    const io = new Server(server, {
+        cors: { 
+            origin: "http://localhost:5173",
+            methods: ["GET", "POST"],
+            credentials: true
+        }
+    });
+
+    setupSocket(io)
 
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`server running in port ${PORT}`)
     });

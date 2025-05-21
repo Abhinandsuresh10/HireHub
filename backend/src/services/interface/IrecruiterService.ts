@@ -11,4 +11,5 @@ export interface IRecruiterService {
     setNewPassword(password: string, email:string):Promise<void>;
     googleLogin(recruiterToken: { recruiter: string }): Promise<object>;
     editRecruiter(recruiterData: IRecruiter , recruiterId: string): Promise<IRecruiter | null>;
+    getUserDetails(userId: string): Promise<{} | null>
 }

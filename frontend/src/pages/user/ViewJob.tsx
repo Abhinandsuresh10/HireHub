@@ -1,17 +1,18 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/user/Header";
 import Footer from "../../components/user/Footer";
-import { Building2, CalendarDays, Briefcase, GraduationCap, MapPin, BadgeDollarSign, ScrollText, CheckCircle2 } from 'lucide-react';
+import { Building2, CalendarDays, Briefcase, GraduationCap, MapPin, BadgeDollarSign, ScrollText, CheckCircle2 , Ban, AlertCircle} from 'lucide-react';
 import { useSelector } from "react-redux";
 import { applyJob } from "../../api/user/userApplication";
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { fetchIsApplied } from "../../api/user/userApplication";
+import { RootState } from "../../store/store";
 
 const ViewJob = () => {
   const location = useLocation();
   const job = location.state?.job;
-  const user = useSelector(state => state.users.user);
+  const user = useSelector((state:RootState) => state.users.user);
   const [isApplied, setIsApplied] = useState(false);
   const navigate = useNavigate();
  
@@ -39,6 +40,7 @@ const ViewJob = () => {
       const response = await applyJob(data);
       if(response) {
         toast.success(response.data.message)
+        navigate('/jobs')
       }
     } catch (error) {
       console.log(error);
@@ -56,6 +58,7 @@ const ViewJob = () => {
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-2xl">
           {/* Header Section */}
           <div className="p-6 space-y-4">
+            
             <div className="flex items-start gap-6">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <Building2 className="w-12 h-12 text-blue-600" />
@@ -68,6 +71,7 @@ const ViewJob = () => {
                   {job.jobLocation}
                 </div>
               </div>
+           
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -109,7 +113,6 @@ const ViewJob = () => {
           {/* Content Section */}
           <div className="p-6 space-y-6">
             <div className="h-px bg-gray-200" />
-            
             <div>
               <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
                 <ScrollText className="w-5 h-5" />
@@ -119,6 +122,7 @@ const ViewJob = () => {
                 {job.jobDescription}
               </p>
             </div>
+            
 
             <div>
               <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
@@ -162,7 +166,12 @@ const ViewJob = () => {
             disabled>
               Already applied
             </button>)}
-           
+              <button
+               onClick={() => navigate(`/spam/recruiter/${job.recruiterId}`)}
+               className="flex items-center border bg-red-500 text-white rounded-lg ml-4 p-2">
+               <AlertCircle className="w-5 h-5 mr-1" />
+               <span className="text-sm font-medium">Report</span>
+             </button>
           </div>
         </div>
       </div>

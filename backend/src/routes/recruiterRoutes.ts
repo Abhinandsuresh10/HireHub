@@ -22,6 +22,9 @@ recruiterRoutes.post('/forgotPassword', recruiterControllers.forgotPassword);
 recruiterRoutes.post('/verifyForgotOtp', recruiterControllers.verifyForgotOtp);
 recruiterRoutes.post('/setNewPassword', recruiterControllers.setNewPassword);
 recruiterRoutes.post('/googleLogin',recruiterControllers.googleLogin);
-recruiterRoutes.post('/editRecruiter', verifyJWT , upload.single('image'), recruiterControllers.editRecruiter)
+recruiterRoutes.post('/editRecruiter', verifyJWT , upload.single('image'), recruiterControllers.editRecruiter);
+
+recruiterRoutes.get('/getUserDetails', verifyJWT, recruiterControllers.getUserDetails);
+recruiterRoutes.post('/downloadPdf', verifyJWT, recruiterControllers.downloadPdf);
 
 export default recruiterRoutes;

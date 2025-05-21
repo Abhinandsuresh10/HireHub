@@ -24,6 +24,16 @@ export const editUser = async (userId: string, data: FormData) => {
         });
         return response;
     } catch (error) {
-        handleAxiosError(error)
+        throw handleAxiosError(error)
+    }
+}
+
+
+export const addUserSkills = async(userId: string, skills: []) => {
+    try {
+       const response = await UserAPI.post(`/addSkills?userId=${userId}`, skills);
+       return response; 
+    } catch (error) {
+        throw handleAxiosError(error)
     }
 }

@@ -108,5 +108,17 @@ export class jobService implements IjobService {
             }
         }
      }
+      
+     async getRoles(): Promise<string[] | null> {
+         try {
+            return await this.jobRepository.getRoles();
+         } catch (error) {
+            if(error instanceof Error) {
+                throw error;
+            } else {
+                throw new Error(HttpResponse.UNKNOWN_ERROR)
+            } 
+         }
+     }
 
 }
