@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Briefcase, Clock, Bookmark, CheckCircle, Calendar, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, Calendar, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '../../components/user/Header';
 import Footer from '../../components/user/Footer';
 import { fetchAppliedJobs } from '../../api/user/userApplication';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 import { fetchUsersInterviews } from '../../api/recruiter/interview';
+import { useNavigate } from 'react-router-dom';
+import { fetchJobById } from '../../api/recruiter/jobPost';
 
 type JobType = 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
 
 interface Job {
-  jobId: number;
+  _id: string;
+  jobId: string;
   title: string;
   company: string;
   location: string;
@@ -33,12 +36,11 @@ interface SavedJob extends Job {
   savedDate: string;
 }
 
-type TabType = 'applied' | 'interview' | 'saved';
+type TabType = 'applied' | 'interview' ;
 
 interface JobsData {
   applied: AppliedJob[];
   interview: InterviewJob[];
-  saved: SavedJob[];
 }
 
 const JobApplicationTracker = () => {
@@ -48,11 +50,12 @@ const JobApplicationTracker = () => {
   const [interviewPage, setInterviewPage] = useState(1);
   const [interviewTotal, setInterviewTotal] = useState(0);
 
+
   const user = useSelector((state: RootState) => state.users.user);
   
   useEffect(() => { 
     const fetchApplied = async () => {
-      const response = await fetchAppliedJobs(user._id, page, limit);
+      const response = await fetchAppliedJobs(user._id, page, limit); // this function has issue in the ui need to fix before hosting ...
       if (response) {
         setJobsData((prev) => ({
           ...prev,
@@ -68,7 +71,6 @@ const JobApplicationTracker = () => {
     const fetchInterviews = async () => {
       const response = await fetchUsersInterviews(user._id, interviewPage, limit);
       if(response) {
-        
         setJobsData((prev) => ({
           ...prev,
           interview: response.data
@@ -82,39 +84,7 @@ const JobApplicationTracker = () => {
   const [activeTab, setActiveTab] = useState<TabType>('applied');
   const [jobsData, setJobsData] = useState<JobsData>({
     applied: [],
-    interview: [
-      {
-        jobId: 3,
-        title: 'Senior React Developer',
-        company: 'WebSolutions',
-        location: 'New York, NY',
-        salary: '$110,000 - $140,000',
-        status: 'Interview Scheduled',
-        interviewDate: '2023-06-02',
-        interviewTime: '10:00 AM',
-        type: 'Full-time'
-      }
-    ],
-    saved: [
-      {
-        jobId: 4,
-        title: 'Product Manager',
-        company: 'InnovateInc',
-        location: 'Chicago, IL',
-        salary: '$100,000 - $130,000',
-        savedDate: '2023-05-10',
-        type: 'Full-time'
-      },
-      {
-        jobId: 5,
-        title: 'Backend Engineer',
-        company: 'DataSystems',
-        location: 'Remote',
-        salary: '$95,000 - $125,000',
-        savedDate: '2023-05-20',
-        type: 'Full-time'
-      }
-    ]
+    interview: []
   });
 
   const handlePreviousPage = () => {
@@ -140,16 +110,34 @@ const JobApplicationTracker = () => {
       setInterviewPage(interviewPage + 1)
     }
   }
-
+  
+  const navigate = useNavigate();
   const renderJobCard = (job: AppliedJob | InterviewJob | SavedJob) => {
+    let key: string = '';
+    if(activeTab === 'applied') {
+       key = job.jobId.toString();
+    } else if (activeTab === 'interview') {
+      key = job._id
+    }
+
+    const handleNavigate = async () => {
+      const response = await fetchJobById(job.jobId);
+      if(response.data) {
+        const job = response.data.job;
+        navigate(`/viewJob`, { state: { job } })
+      }
+    }
+
+
     return (
-      <div key={job.jobId} className="bg-white rounded-lg shadow-md p-6 mb-4 hover:shadow-lg transition-shadow duration-300">
+      <div key={key} className="bg-white rounded-lg shadow-md p-6 mb-4 hover:shadow-lg transition-shadow duration-300">
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-lg font-semibold text-gray-800">{job.title}</h3>
             <p className="text-gray-600">{job.company}</p>
           </div>
           {'status' in job && (
+            
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
               job.status === 'Under Review' ? 'bg-blue-100 text-blue-800' :
               job.status === 'Application Sent' ? 'bg-gray-100 text-gray-800' :
@@ -158,11 +146,8 @@ const JobApplicationTracker = () => {
             }`}>
               {job.status}
             </span>
-          )}
-          {!('status' in job) && (
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              Saved
-            </span>
+          
+          
           )}
         </div>
         
@@ -179,6 +164,7 @@ const JobApplicationTracker = () => {
             <Briefcase className="h-4 w-4 mr-1" />
             {job.type}
           </div>
+          
         </div>
         
         {activeTab === 'applied' && 'appliedDate' in job && (
@@ -187,6 +173,7 @@ const JobApplicationTracker = () => {
             Applied on {new Date(job.appliedDate).toLocaleDateString()}
           </div>
         )}
+
         
         {activeTab === 'interview' && 'interviewDate' in job && (
           <div className="mt-4">
@@ -197,22 +184,11 @@ const JobApplicationTracker = () => {
           </div>
         )}
         
-        {activeTab === 'saved' && 'savedDate' in job && (
-          <div className="mt-4 flex items-center text-sm text-gray-500">
-            <Bookmark className="h-4 w-4 mr-1" />
-            Saved on {new Date(job.savedDate).toLocaleDateString()}
-          </div>
-        )}
         
         <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end space-x-2">
-          <button className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md">
-            View Details
-          </button>
-          {activeTab === 'saved' && (
-            <button className="px-3 py-1 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md">
-              Apply Now
-            </button>
-          )}
+        <button className='px-3 py-1 rounded-full text-xs font-medium  bg-black text-white' onClick={handleNavigate}>
+              view Job
+        </button>
         </div>
       </div>
     );
@@ -246,33 +222,24 @@ const JobApplicationTracker = () => {
             }`}
           >
             <CheckCircle className="h-5 w-5" />
-            <span>Interviews ({jobsData.interview.length})</span>
+            <span>Interviews ({interviewTotal})</span>
           </button>
           
           <button
-            onClick={() => setActiveTab('saved')}
-            className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
-              activeTab === 'saved'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors 'bg-green-600 text-white`}
           >
-            <Bookmark className="h-5 w-5" />
-            <span>Saved ({jobsData.saved.length})</span>
           </button>
         </div>
         
         <div>
           {activeTab === 'applied' && jobsData.applied.map(job => renderJobCard(job))}
           {activeTab === 'interview' && jobsData.interview.map(job => renderJobCard(job))}
-          {activeTab === 'saved' && jobsData.saved.map(job => renderJobCard(job))}
           
           {jobsData[activeTab].length === 0 && (
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 {activeTab === 'applied' && <Briefcase className="h-8 w-8 text-gray-400" />}
                 {activeTab === 'interview' && <CheckCircle className="h-8 w-8 text-gray-400" />}
-                {activeTab === 'saved' && <Bookmark className="h-8 w-8 text-gray-400" />}
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-1">
                 No {activeTab} jobs
@@ -280,7 +247,6 @@ const JobApplicationTracker = () => {
               <p className="text-gray-500">
                 {activeTab === 'applied' && 'You haven\'t applied to any jobs yet.'}
                 {activeTab === 'interview' && 'You don\'t have any upcoming interviews.'}
-                {activeTab === 'saved' && 'You haven\'t saved any jobs yet.'}
               </p>
             </div>
           )}

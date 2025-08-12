@@ -12,6 +12,7 @@ const spamControllers = new spamController(spamServices);
 
 spamRoutes.post('/addSpam', verifyJWT, spamControllers.postSpam);
 spamRoutes.get('/getSpamReports', verifyJWT, spamControllers.getSpamReports);
+spamRoutes.get('/getSpammer', verifyJWT, spamControllers.getSpammer);
 
 
 export default spamRoutes;

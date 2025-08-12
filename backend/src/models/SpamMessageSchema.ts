@@ -2,6 +2,7 @@ import mongoose , { Schema, Document } from 'mongoose'
 
 
 export interface ISpam extends Document {
+    jobId?: string;
     refId: string;
     role: string;
     reason: string;
@@ -12,6 +13,10 @@ export interface ISpam extends Document {
 }
 
 const SpamMessageSchema = new Schema<ISpam>({
+     jobId: {
+        type: String,
+        required: false
+     },
      refId: {
         type: String,
         required: true

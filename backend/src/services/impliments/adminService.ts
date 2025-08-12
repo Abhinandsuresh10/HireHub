@@ -4,6 +4,7 @@ import { IRecruiter } from "../../models/RecruiterSchema";
 import { Iuser } from "../../models/UserSchema";
 import { adminRepository } from "../../repositories/impliments/adminRepository";
 import { IadminRepositoryInterface } from "../../repositories/interface/IadminRepositoryInterface";
+import { IDashobardStats } from "../../types/dashboard.types";
 import { comparePassword } from "../../utils/bcrypt.util";
 import { generateAccessToken, generateRefreshToken } from "../../utils/jwToken";
 import { IAdminService } from "../interface/IadminService";
@@ -131,6 +132,44 @@ export class adminService implements IAdminService {
             console.error(error);
             throw error instanceof Error ? error : new Error(HttpResponse.UNKNOWN_ERROR);
          }
+      }
+
+      async getDashboardStats(): Promise<IDashobardStats | null> {
+          try {
+           return await this.adminRepository.getDashboardStats(); 
+          } catch (error) {
+            if(error instanceof Error) {
+               throw error;
+            } else {
+               throw new Error(HttpResponse.UNKNOWN_ERROR)
+            }
+          }
+      }
+
+       async getDashboardBars(): Promise<{ applications: number[]; interviews: number[]; }> {
+           try {
+            const { applications, interviews } =  await this.adminRepository.getDashboardBars();
+            return { applications, interviews }
+           } catch (error) {
+              if(error instanceof Error) {
+                throw error;
+              } else {
+                throw new Error(HttpResponse.UNKNOWN_ERROR)
+              }
+          }
+      }
+
+      async getDashboardListData(): Promise<{ lineData: number[]; }> {
+          try {
+            const { lineData } = await this.adminRepository.getDashboardLineData();
+            return { lineData };
+          } catch (error) {
+             if(error instanceof Error) {
+                throw error;
+              } else {
+                throw new Error(HttpResponse.UNKNOWN_ERROR)
+              }
+          }
       }
 
 }

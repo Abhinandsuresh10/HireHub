@@ -18,7 +18,7 @@ NotificationRoutes.route('/notifications').get(verifyJWT, async (req: Request, r
         .sort({ date: -1 })
         .skip(skip)
         .limit(limit)
-        .select("_id senderId content userId date"),
+        .select("_id senderId content offerLetter userId date"),
         Notification.countDocuments({ userId })
        ]);
 

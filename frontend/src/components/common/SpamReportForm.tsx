@@ -12,7 +12,8 @@ interface Spam {
 }
 
 const SpamReportForm = () => {
-  const { role, id } = useParams();
+  const { role, id, jobId} = useParams();
+  
   const navigate = useNavigate();
   
   // Form state
@@ -43,7 +44,7 @@ const SpamReportForm = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await submitSpam(role as string, id as string, reportData);
+      const response = await submitSpam(role as string, id as string, jobId as string, reportData);
       if(response.data) {
         navigate(-1)
         toast.success(response.data.message);

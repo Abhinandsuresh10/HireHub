@@ -19,6 +19,12 @@
     import http from 'http'
     import { setupSocket } from "./utils/socket";
     import NotificationRoutes from "./routes/NotificationRoutes";
+    import ratingRoutes from './routes/ratingRoutes';
+    import authRouter from "./routes/authRoutes";
+    import feedbackRoutes from "./routes/feedbackRoutes";
+    import jobRolesRoutes from "./routes/jobRolesRoutes";
+    import premiumRoutes from "./routes/premiumRoutes";
+    
 
 
     dotenv.config();
@@ -55,6 +61,11 @@
     app.use('/api/spam', spamRoutes);
     app.use('/api/interview', interviewRoutes);
     app.use('/api/notification', NotificationRoutes)
+    app.use('/api/rating', ratingRoutes);
+    app.use('/api/auth', authRouter);
+    app.use('/api/feedback', feedbackRoutes);
+    app.use('/api/jobRoles', jobRolesRoutes);
+    app.use('/api/premium', premiumRoutes);
 
     const server = http.createServer(app);
     const io = new Server(server, {

@@ -53,7 +53,9 @@ const RecruiterProfile = () => {
 
           <div className="mt-6 flex space-x-3">
             <button onClick={() => navigate('/recruiter/editProfile')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Edit Profile</button>
+            <button onClick={() => navigate('/recruiter/viewUsers')} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">View Users</button>
           </div>
+          
         </div>
       </div>
     </div>

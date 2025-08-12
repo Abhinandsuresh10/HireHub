@@ -17,7 +17,7 @@ export class educationRepository extends BaseRepository<IEducation> implements I
         }
     }
 
-    async getEducation(userId: string): Promise<IEducation | null> {
+    async getEducation(userId: string): Promise<IEducation> {
         try {
             return await this.findOne({userId});
         } catch (error) {

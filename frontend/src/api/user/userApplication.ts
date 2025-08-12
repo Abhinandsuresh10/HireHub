@@ -3,39 +3,39 @@ import { handleAxiosError } from "../../utils/HandleError"
 
 
 interface apply {
-    jobId: string;
-    userId: string;
-    recruiterId: string;
+  jobId: string;
+  userId: string;
+  recruiterId: string;
 }
 
 export const applyJob = async (data: apply) => {
-    try {
-        const response = await ApplicationApi.post('/apply', data);
-        return response;
-    } catch (error) {
-        handleAxiosError(error)
-    }
+  try {
+    const response = await ApplicationApi.post('/apply', data);
+    return response;
+  } catch (error) {
+    handleAxiosError(error)
+  }
 }
 
 export const fetchIsApplied = async (userId: string, jobId: string) => {
-    try {
-      const response = ApplicationApi.get(`/isApplied?userId=${userId}&jobId=${jobId}`);
-      return response;
-    } catch (error) {
-      throw handleAxiosError(error);
-    }
+  try {
+    const response = ApplicationApi.get(`/isApplied?userId=${userId}&jobId=${jobId}`);
+    return response;
+  } catch (error) {
+    throw handleAxiosError(error);
   }
+}
 
 export const fetchAppliedJobs = async (userId: string, page: number, limit: number) => {
-    try {
-        const response = await ApplicationApi.get(`/appliedJobs?userId=${userId}&page=${page}&limit=${limit}`);
-        return response;
-    } catch (error) {
-        handleAxiosError(error)
-    } 
+  try {
+    const response = await ApplicationApi.get(`/appliedJobs?userId=${userId}&page=${page}&limit=${limit}`);
+    return response;
+  } catch (error) {
+    handleAxiosError(error)
   }
+}
 
-export const getAplied = async(id: string, page: number, limit: number) => {
+export const getAplied = async (id: string, page: number, limit: number) => {
   try {
     const response = await ApplicationApi.get(`/getApplicants?recruiterId=${id}&page=${page}&limit=${limit}`);
     return response.data
@@ -45,19 +45,59 @@ export const getAplied = async(id: string, page: number, limit: number) => {
   }
 }
 
-export const acceptApplication = async(id: string) => {
+export const acceptApplication = async (id: string) => {
   try {
-   const response = await ApplicationApi.patch(`/acceptApplication?id=${id}`);
-   return response; 
+    const response = await ApplicationApi.patch(`/acceptApplication?id=${id}`);
+    return response;
   } catch (error) {
     console.log(error);
     throw handleAxiosError(error);
   }
 }
 
-export const getApplication = async(id: string) => {
+export const rejectApplication = async (id: string) => {
+  try {
+    const response = await ApplicationApi.patch(`/rejectApplication?id=${id}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw handleAxiosError(error);
+  }
+}
+
+export const getApplication = async (id: string) => {
   try {
     const response = await ApplicationApi.get(`/getApplication?id=${id}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw handleAxiosError(error);
+  }
+}
+
+export const getAppliedJobApplication = async (userId: string, jobId: string) => {
+  try {
+    const response = ApplicationApi.get(`/getAppliedApplication?userId=${userId}&jobId=${jobId}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw handleAxiosError(error);
+  }
+}
+
+export const declineMail = async (reason: string, name: string, email: string, jobId: string) => {
+  try {
+    const response = ApplicationApi.post('/declineMail', { reason, name, email, jobId });
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw handleAxiosError(error);
+  }
+}
+
+export const hireInterviewe = async (id: string) => {
+  try {
+    const response = await ApplicationApi.patch(`/hireInterviewe?id=${id}`);
     return response;
   } catch (error) {
     console.log(error);

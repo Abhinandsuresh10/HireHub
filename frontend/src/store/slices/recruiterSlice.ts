@@ -7,7 +7,8 @@ interface AuthState {
 }
 
 const storedRecruiter = localStorage.getItem("recruiter");
-const storedToken = localStorage.getItem("recruiterToken");
+// const storedToken = localStorage.getItem("recruiterToken");
+const storedToken = localStorage.getItem("token") // testing...
 
 const initialState: AuthState = {
   recruiter: storedRecruiter ? JSON.parse(storedRecruiter) : null,
@@ -24,7 +25,8 @@ const recruiterAuthSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.isAuthenticated = true;
 
-      localStorage.setItem("recruiterToken", action.payload.accessToken);
+      // localStorage.setItem("recruiterToken", action.payload.accessToken);
+      localStorage.setItem("token", action.payload.accessToken)
     },
     logout: (state) => {
       state.recruiter = null;
@@ -32,7 +34,8 @@ const recruiterAuthSlice = createSlice({
       state.isAuthenticated = false;
 
       localStorage.removeItem("recruiter");
-      localStorage.removeItem("recruiterToken");
+      // localStorage.removeItem("recruiterToken");
+      localStorage.removeItem("token")
     },
   },
 });

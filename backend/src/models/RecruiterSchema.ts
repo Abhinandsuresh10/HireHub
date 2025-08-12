@@ -12,7 +12,19 @@ export interface IRecruiter extends Document {
     company?:string;
     industry?:string;
     hiringInfo?: string;
-    premiumId?:string;
+    premium?: { 
+        planId: string;
+        startsAt: Date;
+        expiresAt: Date;
+    };
+    addedJobs: {
+        date: Date;
+        count: number;
+    };
+    viewUserProfile: {
+        date: Date;
+        count: number;
+    }
     createdAt?:Date;
     updatedAt?:Date;
 }
@@ -30,9 +42,21 @@ const RecruiterSchema = new Schema<IRecruiter>(
         company: { type: String, required: false },
         industry: {type: String},
         hiringInfo: { type: String },
-        premiumId: { type: String },
+        premium: {
+            planId: { type: String },
+            startsAt: { type: Date },
+            expiresAt: { type: Date }
+        },
+         addedJobs: {
+            date: { type: Date },
+            count: { type: Number } 
+        },
+        viewUserProfile: {
+            date: { type: Date },
+            count: { type: Number }
+        }
     },
-    { timestamps: true}
+    { timestamps: true }
 );
 
 export default mongoose.model<IRecruiter>("Recruiter", RecruiterSchema);

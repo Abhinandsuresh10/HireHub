@@ -5,6 +5,8 @@ export interface InterviewType {
     recruiterId?: string;
     jobRole: string;
     interviewer: string;
+    interviewType: string;
+    round?: string;
     date: Date;
     time: string;
 }

@@ -5,33 +5,37 @@ import { InterviewSchema, interviewFormData } from "../../schema/Interview.schem
 import { sheduleInterview } from "../../api/recruiter/interview";
 import toast from "react-hot-toast";
 import { fetchJobById } from "../../api/recruiter/jobPost";
-import { useNavigate } from "react-router-dom";
 import { io, Socket } from "socket.io-client";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
+import { Application } from "../../types/application.type";
 
 
 const socket:Socket = io("http://localhost:5000");
 
 interface InterviewFormProps {
-  application: any;
+  application: Application;
   onClose: () => void;
 }
 
 const InterviewForm = ({ application, onClose }: InterviewFormProps) => {
   
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<interviewFormData>({
-    resolver: zodResolver(InterviewSchema),
-  });
+const {
+  register,
+  handleSubmit,
+  setValue,
+  formState: { errors },
+} = useForm<interviewFormData>({
+  resolver: zodResolver(InterviewSchema),
+  defaultValues: {
+    timePeriod: "AM",
+  }
+});
 
   const [timePeriod, setTimePeriod] = useState<'AM' | 'PM'>('AM');
   const [jobRole, setJobRole] = useState('');
-  const recruiter = useSelector((state: RootState) => state.recruiterAuth.recruiter)
+
+  const recruiter = useSelector((state: RootState) => state.recruiters.recruiter)
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -44,30 +48,29 @@ const InterviewForm = ({ application, onClose }: InterviewFormProps) => {
     fetchJob();
   }, [application, setValue]);
 
-  const navigate = useNavigate();
+const onSubmit = async (data: interviewFormData) => {
+  try {
+    const response = await sheduleInterview(data, application);
 
-  const onSubmit = async (data: interviewFormData) => {
-    const formData = {
-      ...data,
-      time: `${data.time} ${timePeriod}`,
-    };
-    const response = await sheduleInterview(formData, application);
-    
     const dateFormatted = new Date(data.date).toLocaleDateString();
     const notification = {
       senderId: recruiter._id,
-      content:`Your interview has been scheduled on ${dateFormatted} at ${data.time} ${timePeriod} with ${recruiter.company}, by ${recruiter.name}.`,
-      userId: application.userId
-    }
-    socket.emit('shedule_interview', notification);
-    
+      content: `Your interview has been scheduled on ${dateFormatted} at ${data.time} ${data.timePeriod} with ${recruiter.company}, by ${recruiter.name}.`,
+      userId: application.userId,
+    };
+    socket.emit("shedule_interview", notification);
+
     if (response.data) {
       toast.success(response.data.message);
-      navigate(-1);
       onClose();
     }
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      toast.error(error.message);
+    }
+  }
+};
 
-  };
 
   return (
     <form
@@ -114,6 +117,22 @@ const InterviewForm = ({ application, onClose }: InterviewFormProps) => {
             <p className="text-red-500 text-xs mt-1.5">{errors.interviewer.message}</p>
           )}
         </div>
+
+        <div>
+          <label htmlFor="interviewType" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Interview Type <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="interviewType"
+            {...register("interviewType")}
+            className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            defaultValue=""
+          >
+            <option value="HR">HR Interview</option>
+            <option value="Technical">Technical Interview</option>
+          </select>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -146,13 +165,12 @@ const InterviewForm = ({ application, onClose }: InterviewFormProps) => {
                 )}
               </div>
               <select
-                value={timePeriod}
-                onChange={(e) => setTimePeriod(e.target.value as 'AM' | 'PM')}
-                className="px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              >
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-              </select>
+  {...register("timePeriod")}
+  className="px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+>
+  <option value="AM">AM</option>
+  <option value="PM">PM</option>
+</select>
             </div>
           </div>
         </div>

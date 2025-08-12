@@ -92,7 +92,7 @@ export class chatRepository extends BaseRepository<IMessage> implements IchatRep
 
    async getRecruitersAndChats(userId: string): Promise<UserWithMessages[] | null> {
        try {
-        const userObjectId = new mongoose.Types.ObjectId(userId);
+        // const userObjectId = new mongoose.Types.ObjectId(userId);
 
         const recruiters = await Message.aggregate([
           {

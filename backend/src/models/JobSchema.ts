@@ -13,6 +13,8 @@ export interface IJob extends Document {
     qualification: string;
     deadline: Date;
     company: string;
+    isBlocked?: boolean;
+    blockCount?: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -30,7 +32,9 @@ const JobSchema = new Schema<IJob>(
         skills: { type: [String], default: [] },
         qualification: { type: String, required: true },
         deadline: { type: Date, required: true },
-        company: { type: String, required: true}
+        company: { type: String, required: true},
+        isBlocked: { type: Boolean, default: false },
+        blockCount: { type: Number, default: 1}
     },
     { timestamps: true }
 );

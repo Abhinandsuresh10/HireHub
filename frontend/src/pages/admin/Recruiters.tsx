@@ -63,7 +63,7 @@ const Recruiters = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-auto bg-gray-100">
-        <AdminHeader pageTitle="Dashboard" />
+        <AdminHeader pageTitle="Recruiters" />
 
         {/* Search */}
         <div className="p-4 ml-8">

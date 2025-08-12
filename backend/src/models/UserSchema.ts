@@ -12,8 +12,23 @@ export interface Iuser extends Document {
     location?:string;
     jobTitle?:string;
     skills?:string[];
-    premiumId?:string;
+    premium?: { 
+        planId: string,
+        startsAt: Date,
+        expiresAt: Date
+    };
+    viewedJobs: {
+        date: Date;
+        count: number
+    };
+    viewedRecruiters: {
+        date: Date;
+        count: number;
+    }
     resumeUrl?:string;
+    coverLetter?:string;
+    preferredJobRoles?: string[];
+    preferredJobTypes?: string[];
     createdAt?:Date;
     updatedAt?:Date;
 }
@@ -31,8 +46,23 @@ const UserSchema = new Schema<Iuser>(
         location: { type: String },
         jobTitle: { type: String},
         skills: { type: [String], default: [] },
-        premiumId: { type: String },
+        premium: {
+            planId: { type: String },
+            startsAt: { type: Date },
+            expiresAt: { type: Date }
+        },
+        viewedJobs: {
+            date: { type: Date },
+            count: { type: Number } 
+        },
+        viewedRecruiters: {
+            date: { type: Date },
+            count: { type: Number}
+        },
         resumeUrl: { type: String },
+        coverLetter: { type: String },
+        preferredJobRoles: { type: [String], default: [] },
+        preferredJobTypes: { type: [String], default: [] }
     },
     { timestamps: true}
 );

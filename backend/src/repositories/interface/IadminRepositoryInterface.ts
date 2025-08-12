@@ -1,6 +1,7 @@
 import { Iadmin } from "../../models/AdminSchema";
 import { IRecruiter } from "../../models/RecruiterSchema";
 import { Iuser } from "../../models/UserSchema";
+import { IDashobardStats } from "../../types/dashboard.types";
 
 
 
@@ -15,4 +16,7 @@ export interface IadminRepositoryInterface {
     updateRecruiter(id: string, updateData: Partial<IRecruiter>): Promise<IRecruiter | null>;
     userBlockUnblock(id: string, status: boolean): Promise<Iuser | null>;
     recruiterBlockUnblock(id: string, status: boolean): Promise<IRecruiter | null>;
+    getDashboardStats(): Promise<IDashobardStats | null>
+    getDashboardBars(): Promise<{applications: number[]; interviews: number[]}>
+    getDashboardLineData(): Promise<{lineData: number[]}>;
 }

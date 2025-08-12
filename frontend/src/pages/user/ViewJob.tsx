@@ -5,25 +5,28 @@ import { Building2, CalendarDays, Briefcase, GraduationCap, MapPin, BadgeDollarS
 import { useSelector } from "react-redux";
 import { applyJob } from "../../api/user/userApplication";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchIsApplied } from "../../api/user/userApplication";
 import { RootState } from "../../store/store";
+import { getEducation } from "../../api/user/education";
 
 const ViewJob = () => {
   const location = useLocation();
   const job = location.state?.job;
   const user = useSelector((state:RootState) => state.users.user);
-  const [isApplied, setIsApplied] = useState(false);
+  const [isApplied, setApplicationStatus] = useState('');
   const navigate = useNavigate();
  
- 
-  const fetchitem = async () => {
-    const isApplied = await fetchIsApplied(user._id, job._id);
-    if(!isApplied.data) {
-      setIsApplied(true);
-    }
-  }
-  fetchitem();
+ useEffect(() => { 
+   const fetchitem = async () => {
+     const response = await fetchIsApplied(user._id, job._id);
+     
+     if(response.data) {
+       setApplicationStatus(response.data.status);
+     }
+   }
+   fetchitem();
+ },[user._id, job._id]);
 
   const handleApply = async () => {
     try {
@@ -37,10 +40,25 @@ const ViewJob = () => {
         navigate('/profile')
         return;
       }
+
+
+       try {
+      const education = await getEducation(user._id as string);
+      if (!education || education.length === 0) {
+        toast.error('Education not added yet! Please add your education before applying.');
+        navigate('/profile'); 
+        return;
+      }
+    } catch (error) {
+      toast.error('Education not added yet! Please add your education before applying.');
+      navigate('/profile');
+      return;
+    }
+      
       const response = await applyJob(data);
       if(response) {
-        toast.success(response.data.message)
-        navigate('/jobs')
+        toast.success(response.data.message);
+        setApplicationStatus('Pending');
       }
     } catch (error) {
       console.log(error);
@@ -48,7 +66,7 @@ const ViewJob = () => {
   }
 
   if (!job) {
-    return <p className="text-center text-xl text-gray-600 mt-10">Job not found</p>;
+    return <p className="text-center text-xl text-gray-600 mt-10">Loading...</p>;
   }
 
   return (
@@ -87,7 +105,7 @@ const ViewJob = () => {
                 <div>
                   <p className="text-sm font-medium">Salary</p>
                   <p className="text-sm text-gray-600">
-                    {job.minSalary}LPA - {job.maxSalary}LPA
+                    {job.minSalary} ₹ - {job.maxSalary} ₹
                   </p>
                 </div>
               </div>
@@ -156,18 +174,29 @@ const ViewJob = () => {
 
           {/* Footer Section */}
           <div className="p-6 flex justify-center pt-6">
-            {isApplied ? ( <button 
+            {isApplied === 'Not Applied' && <button 
               onClick={handleApply}
               className="px-8 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors w-full sm:w-auto"
             >
               Apply for this position
-            </button>) : ( <button 
+            </button> }
+            
+            {isApplied === 'Pending' && <button 
               className="px-8 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-300 transition-colors w-full sm:w-auto"
             disabled>
               Already applied
-            </button>)}
+            </button>
+            } 
+
+           {isApplied === 'Rejected' && <button 
+              className="px-8 py-2 bg-red-300 text-white rounded-lg font-medium hover:bg-red-300 transition-colors w-full sm:w-auto"
+            disabled>
+              Rejected
+            </button>
+            } 
+
               <button
-               onClick={() => navigate(`/spam/recruiter/${job.recruiterId}`)}
+               onClick={() => navigate(`/spam/recruiter/${job.recruiterId}/${job._id}`)}
                className="flex items-center border bg-red-500 text-white rounded-lg ml-4 p-2">
                <AlertCircle className="w-5 h-5 mr-1" />
                <span className="text-sm font-medium">Report</span>

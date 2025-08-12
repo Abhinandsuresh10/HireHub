@@ -8,6 +8,8 @@ import Users from "../pages/admin/Users";
 import Recruiters from "../pages/admin/Recruiters";
 import { Skills } from "../pages/admin/AddSkills";
 import SpamReports from "../pages/admin/SpamReports";
+import JobRoles from "../pages/admin/JobRoles";
+import Premium from "../pages/admin/Preimum";
 
 
 const AdminRoutes = () => {
@@ -19,6 +21,8 @@ const AdminRoutes = () => {
         <Route path='/recruiters' element={<Recruiters/>} />
         <Route path="/skills" element={<Skills />} />
         <Route path="/spam" element={<SpamReports />} />
+        <Route path="/jobRoles" element={<JobRoles />} />
+        <Route path="/preimum" element={<Premium />} />
         </Route>
 
         <Route element={<AdminPublicRoute />} >

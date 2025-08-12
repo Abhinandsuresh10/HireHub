@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import RecruiterHeader from "../../components/recruiter/RecruiterHeader";
 import Footer from "../../components/user/Footer";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import JobsCard from "../../components/recruiter/JobsCard";
 import { deleteJob, getJobs } from "../../api/recruiter/jobPost";
 import { useSelector } from "react-redux";
@@ -11,6 +11,9 @@ import { getAplied } from "../../api/user/userApplication";
 import ApplicantCard from "../../components/recruiter/ApplicantCard";
 import { getInterviews } from "../../api/recruiter/interview";
 import InterviewCard from "../../components/recruiter/InterviewCard";
+import { AxiosError } from "axios";
+import { checkDayAddJobComplete } from "../../api/recruiter/recriuters";
+import PremiumModal from "../../components/common/PremiumModal";
 
 
 interface Interview {
@@ -18,6 +21,7 @@ interface Interview {
   username: string;
   jobRole: string;
   interviewer: string;
+  interviewType: string;
   date: Date;
   time: string;
 }
@@ -32,7 +36,9 @@ const RecruiterManageJobs = () => {
   const [interviewPage, setInterviewPage] = useState(1);
   const [interviewTotal, setInterviewTotal] = useState(1);
   const [applicants, setApplicant] = useState([]);
-  const [interviews, setInterview] = useState([])
+  const [interviews, setInterview] = useState([]);
+  const [interviewType, setInterviewType] = useState('');
+  const [modal, setModal] = useState(false);
 
   const limit = 6;
   const recruiter = useSelector((state:RootState) => state.recruiters.recruiter);
@@ -72,7 +78,7 @@ const RecruiterManageJobs = () => {
   useEffect(() => {
     
     const fetchInterviews = async () => {
-    const response = await getInterviews(recruiter._id, interviewPage, limit);
+    const response = await getInterviews(recruiter._id, interviewPage, limit, interviewType);
     
     if(response.data) {
       setInterviewTotal(response.total)
@@ -80,9 +86,9 @@ const RecruiterManageJobs = () => {
     }
     }
     fetchInterviews()
-  },[recruiter, interviewPage])
+  },[recruiter, interviewPage, interviewType])
 
- 
+ // to delete a job of the recruiter...
   const handleDeleteJob = async (id: string) => {
     try {
       const response = await deleteJob(id);
@@ -94,12 +100,35 @@ const RecruiterManageJobs = () => {
       console.log(error);
     }
   }
+  
+  const navigate = useNavigate();
+
+  // to check weather the daily job count for non premium recruiter are exeeded or not...
+  const handleAddJobNavigate = async() => {
+    try {
+      const response = await checkDayAddJobComplete(recruiter._id);
+       if(response.data){
+         navigate('/recruiter/postJob');
+       } 
+      } catch (error) {
+      if(error instanceof AxiosError) {
+       if (error?.response?.status === 403) {
+      setModal(true)
+      toast.error(error.response.data?.error || "add limit reached.");
+    } else {
+      toast.error("Something went wrong while adding job.");
+      console.error(error); 
+     }
+      }
+    }
+
+  }
 
 
   return (
     <>
       <RecruiterHeader />
-      <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="p-6 min-h-screen">
         {/* Tabs */}
         <div className="flex gap-4 mb-6 justify-center">
           <button
@@ -139,11 +168,11 @@ const RecruiterManageJobs = () => {
           {activeTab === "postJob" && (
             <>
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Posted Jobs</h2>
-              <Link to='/recruiter/postJob'
+              <button onClick={handleAddJobNavigate}
                 className="mb-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200"
               >
                 Add Job
-              </Link>
+              </button>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
               {jobs.map((job) => (
                   <JobsCard handleDeleteJob={handleDeleteJob} job={job} /> 
@@ -212,6 +241,17 @@ const RecruiterManageJobs = () => {
           {activeTab === "interviews" && (
             <>
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Scheduled Interviews</h2>
+          <div className="flex gap-4 flex-wrap mb-4 w-full justify-end">
+
+          <select onChange={(e) => setInterviewType(e.target.value)} className="p-2 rounded bg-white border border-gray-200  
+                                  text-gray-700 focus:outline-none focus:border-indigo-500 focus:ring-2 
+                                  focus:ring-indigo-200 transition-all duration-200 shadow-sm
+                                  placeholder:text-gray-400">
+            <option value="">All Types</option>
+            <option value="Technical">Technical Round</option>
+            <option value="HR">HR Round</option>
+          </select>
+          </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {interviews.map((interview:Interview) => (
                   <InterviewCard interview={interview} />
@@ -229,7 +269,7 @@ const RecruiterManageJobs = () => {
               <span>Page {interviewPage}</span>
               <button
                 className={`bg-black text-white rounded-lg px-4 py-2 ${interviewPage * limit >= interviewTotal ? 'opacity-50 cursor-not-allowed' : ''}`}
-                onClick={() => setAppliedPage((prev) => prev + 1)}
+                onClick={() => setInterviewPage((prev) => prev + 1)}
                 disabled={interviewPage * limit >= interviewTotal}
               >
                 Next
@@ -241,8 +281,9 @@ const RecruiterManageJobs = () => {
         </div>
       </div>
       <Footer />
+      {modal && <PremiumModal role='recruiter' onClose={() => { setModal(false); return false}}/>}
     </>
-  );
-};
+    );
+  };
 
 export default RecruiterManageJobs;

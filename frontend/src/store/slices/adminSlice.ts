@@ -7,7 +7,8 @@ interface AuthState {
 }
 
 const storedUser = localStorage.getItem("admin");
-const storedToken = localStorage.getItem("adminToken");
+// const storedToken = localStorage.getItem("adminToken");
+const storedToken = localStorage.getItem("token") // testing...
 
 const initialState: AuthState = {
   admin: storedUser ? JSON.parse(storedUser) : null,
@@ -26,7 +27,8 @@ const adminAuthSlice = createSlice({
       state.isAuthenticated = true;
 
       localStorage.setItem("admin", JSON.stringify(action.payload.admin));
-      localStorage.setItem("adminToken", action.payload.accessToken);
+      // localStorage.setItem("adminToken", action.payload.accessToken);
+      localStorage.setItem("token", action.payload.accessToken);
     },
     logout: (state) => {
       state.admin = null;
@@ -34,7 +36,8 @@ const adminAuthSlice = createSlice({
       state.isAuthenticated = false;
 
       localStorage.removeItem("admin");
-      localStorage.removeItem("adminToken");
+      // localStorage.removeItem("adminToken");
+      localStorage.removeItem("token");
     },
   },
 });

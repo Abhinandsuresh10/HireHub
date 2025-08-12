@@ -2,8 +2,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Footer from "../../components/user/Footer";
 import Header from "../../components/user/Header";
 import { FaUserCircle } from "react-icons/fa";
-import { useEffect, useState } from "react";
-import { addResume, addUserSkills } from "../../api/user/users";
+import { useEffect, useState, ChangeEvent } from "react";
+import { addCoverLetter, addResume, addUserSkills } from "../../api/user/users";
 import toast from "react-hot-toast";
 import { addUser } from "../../store/slices/userDataSlice";
 import { Link, useNavigate } from "react-router-dom";
@@ -13,47 +13,78 @@ import { getSkills } from "../../api/admin/skills";
 import { RootState } from "../../store/store";
 import PreferredJobs from "./PreferredJobs";
 
+// User type based on your sample
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  mobile: string;
+  imageUrl?: string;
+  jobTitle?: string;
+  location?: string;
+  skills: string[];
+  preferredJobRoles: string[];
+  preferredJobTypes: string[];
+  resumeUrl?: string;
+  coverLetter?: string;
+  isBlocked: boolean;
+  isGoogleAuth: boolean;
+  password: string;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+// Skill category type
+interface SkillCategory {
+  category: string;
+  skills: string[];
+}
 
 const Profile = () => {
-  const user = useSelector((state: RootState) => state.users.user);
-  const [resume , setResume] = useState(null);
-  const [skills, setSkills] = useState([]);
-  const [selectedSkill, setSelectedSkill] = useState(null);
-  const [selectedSkills, setSelectedSkills] = useState([]);
-  const [added, setAdded] = useState(false);
-  const [showPreferredJobs ,setShowPreferredJobs] = useState(false)
-  
+  const user = useSelector((state: RootState) => state.users.user) as User;
+  const [resume, setResume] = useState<File | null>(null);
+  const [coverLetter, setCoverLetter] = useState<File | null>(null);
+  const [skills, setSkills] = useState<SkillCategory[]>([]);
+  const [selectedSkill, setSelectedSkill] = useState<SkillCategory | null>(null);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [added, setAdded] = useState<boolean>(false);
+  const [showPreferredJobs, setShowPreferredJobs] = useState(false);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    
-    const fetchSkills = async () => {  
+    const fetchSkills = async () => {
       const response = await getSkills();
-      if(response?.data) {
+      if (response?.data) {
         setSkills(response.data.skills);
       }
-    }
+    };
     fetchSkills();
-  }, [])
+  }, []);
 
   useEffect(() => {
-    setSelectedSkill(skills[0])
-  },[skills])
-
-  const handleSKills = async() => {
-    if(selectedSkills.length > 0) {
-    const response = await addUserSkills(user._id, selectedSkills as []);
-    if(response.data) {
-      setAdded(false)
-      toast.success(response.data.message);
-      dispatch(addUser({user: response.data.user}));
+    if (skills.length > 0) {
+      setSelectedSkill(skills[0]);
     }
+  }, [skills]);
+
+  const handleSKills = async () => {
+    if (selectedSkills.length > 0) {
+      const response = await addUserSkills(user._id, selectedSkills);
+      if (response.data) {
+        setAdded(false);
+        toast.success(response.data.message);
+        dispatch(addUser({ user: response.data.user }));
+        setSelectedSkills([]); 
+      }
     } else {
       toast('ℹ️ Please select a skill', {
         style: {
           padding: '4px',
-          color: '#2f86eb', 
+          color: '#2f86eb',
         },
         iconTheme: {
           primary: '#2f86eb',
@@ -61,155 +92,302 @@ const Profile = () => {
         },
       });
     }
-  }
+  };
 
-  const handleResume = async() => {
-    if(!resume) toast.error('please select a resume')
+  const handleResume = async () => {
+    if (!resume) {
+      toast.error('Please select a resume');
+      return;
+    }
     const formData = new FormData();
     formData.append('resume', resume);
     const userId = user._id;
     try {
-      
       const response = await addResume(formData, userId);
-      if(response){
-        dispatch(addUser({user: response.data.user}))
+      if (response) {
+        dispatch(addUser({ user: response.data.user }));
         toast.success(response.data.message);
-        setResume(null)
+        setResume(null);
       } else {
-        toast.error('failed to upload resume')
+        toast.error('Failed to upload resume');
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
+    }
+  };
+
+  const handleCoverLetter = async () => {
+      if (!coverLetter) {
+      toast.error('Please select a coverLetter');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('coverLetter', coverLetter);
+    const userId = user._id;
+    try {
+      const response = await addCoverLetter(formData, userId);
+      console.log(response, ' this is the response from the backend')
+      if (response) {
+        dispatch(addUser({ user: response.data.user }));
+        toast.success(response.data.message);
+        setCoverLetter(null);
+      } else {
+        toast.error('Failed to upload coverLetter');
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
-    return (
-        <>
-     <Header />
+  return (
+    <>
+      <Header />
       <div className="max-w-5xl mx-auto p-6">
         {/* Profile Header */}
         <div className="grid md:grid-cols-3 gap-6">
           {/* Profile Card */}
           <div className="bg-white shadow-xl rounded-xl p-6 flex flex-col items-center max-h-[460px]">
-            {user.imageUrl ? (<img
-              src={user.imageUrl}
-              alt="Profile"
-              className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-gray-200"
-            />) : (<FaUserCircle className="text-gray-500 w-22 h-28" />)}
-            
+            {user.imageUrl ? (
+              <img
+                src={user.imageUrl}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-gray-200"
+              />
+            ) : (
+              <FaUserCircle className="text-gray-500 w-22 h-28" />
+            )}
+
             <h2 className="text-xl font-semibold">{user.name || ''}</h2>
             <p className="text-gray-500 text-sm">{user.jobTitle || ''}</p>
             <p className="text-gray-500 text-sm">{user.location || ''}</p>
-            <p className="text-gray-500 text-sm">
-              {user.email} 
-            </p>
-            <p className="text-gray-500 text-sm">
-              {user.mobile}
-            </p>
-            <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600" onClick={() => navigate('/editProfile')}>
+            <p className="text-gray-500 text-sm">{user.email}</p>
+            <p className="text-gray-500 text-sm">{user.mobile}</p>
+            <button
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600"
+              onClick={() => navigate('/editProfile')}
+            >
               Edit Profile
             </button>
+            
             <div className="w-full px-4 py-2 mt-6 shadow-md h-auto rounded-lg flex justify-between items-center bg-white">
-             <Link to='/myJobs' className="px-4 py-1.5 bg-gray-200 text-sm text-gray-700 rounded-lg">
-               My Jobs
-             </Link>
-             <button onClick={() => setShowPreferredJobs(true)} className="px-4 py-1.5 bg-gray-200 text-sm text-gray-700 rounded-lg">
-               Preferred Jobs
-             </button>
-           </div>
-          <PreferredJobs open={showPreferredJobs} onClose={() => setShowPreferredJobs(false)} />
+              <Link to="/myJobs" className="px-4 py-1.5 bg-gray-200 text-sm text-gray-700 rounded-lg">
+                My Jobs
+              </Link>
+              <button
+                onClick={() => setShowPreferredJobs(true)}
+                className="px-4 py-1.5 bg-gray-200 text-sm text-gray-700 rounded-lg"
+              >
+                Preferred Jobs
+              </button>
+            </div>
+            <PreferredJobs open={showPreferredJobs} onClose={() => setShowPreferredJobs(false)} />
           </div>
-  
+
           {/* Work Experience & Education */}
           <div className="md:col-span-2 bg-white shadow-xl rounded-xl p-6">
             <WorkExperience />
-  
             <Education />
           </div>
         </div>
-  
+
         {/* Skills Section */}
-         <div className="mt-6 bg-white shadow-2xl rounded-xl p-6">
-          {added ? (<>
-            <h3 className="text-lg font-semibold mb-3">add SKills</h3>
-           <select
-             onChange={(e) => {
-               const selectedCategory = skills.find(
-                 (skill) => skill.category === e.target.value
-               );
-               setSelectedSkill(selectedCategory || null);
-             }}
-             className="border border-gray-300 rounded-lg px-3 py-2 w-full mb-4"
-           >
-             {skills.map((item, index) => (
-               <option key={index} value={item.category}>
-                 {item.category}
-               </option>
-             ))}
-           </select>
-           <div className="flex flex-wrap gap-2">
-          {selectedSkill?.skills?.map((skill, index) => (
-            <label key={index} className="bg-gray-200 text-gray-700 px-3 py-1 text-sm rounded-lg flex items-center gap-1">
-              <input type="checkbox" value={skill} className="mr-1" onChange={(e) => setSelectedSkills((prev) => e.target.checked ? [...prev, skill] :  prev.filter((s) => s !== skill))} />
-              {skill}
-            </label>
-          ))}
-          <button className="ml-2 text-white bg-blue-500 rounded-lg text-sm p-1" onClick={handleSKills}>Add +</button>
-        </div>
-          </>) : (<>
-            <h3 className="text-lg font-semibold mb-3 mt-2">SKills</h3>
-          <div className="flex flex-wrap gap-2">
-          {user?.skills?.map((skill, index) => (
-              <span className="mr-1 bg-gray-200 text-gray-700 px-3 py-1 text-sm rounded-lg flex items-center gap-1" >
-              {skill}
-            </span>
-          ))}
-          <button className="text-sm text-white rounded-lg p-1 bg-green-500" onClick={() => setAdded(true)}>{user?.skills?.length > 0 ? 'Add More' : 'Add'}</button>
-          </div>
-          </>)}
-          
-       
-         </div>
-           
-        {/* Resume & Portfolio */}
         <div className="mt-6 bg-white shadow-2xl rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-3">Add Your Resume </h3>
+          {added ? (
+            <>
+              <h3 className="text-lg font-semibold mb-3">Add Skills</h3>
+              <select
+                onChange={(e) => {
+                  const selectedCategory = skills.find(
+                    (skill) => skill.category === e.target.value
+                  );
+                  setSelectedSkill(selectedCategory || null);
+                  setSelectedSkills([]); // clear when changing category
+                }}
+                className="border border-gray-300 rounded-lg px-3 py-2 w-full mb-4"
+                value={selectedSkill?.category || ''}
+              >
+                {skills.map((item, index) => (
+                  <option key={index} value={item.category}>
+                    {item.category}
+                  </option>
+                ))}
+              </select>
+              <div className="flex flex-wrap gap-2">
+                {selectedSkill?.skills?.map((skill, index) => (
+                  <label
+                    key={index}
+                    className="bg-gray-200 text-gray-700 px-3 py-1 text-sm rounded-lg flex items-center gap-1"
+                  >
+                    <input
+                      type="checkbox"
+                      value={skill}
+                      checked={selectedSkills.includes(skill)}
+                      className="mr-1"
+                      onChange={(e) =>
+                        setSelectedSkills((prev) =>
+                          e.target.checked
+                            ? [...prev, skill]
+                            : prev.filter((s) => s !== skill)
+                        )
+                      }
+                    />
+                    {skill}
+                  </label>
+                ))}
+                <button
+                  className="ml-2 text-white bg-blue-500 rounded-lg text-sm p-1"
+                  onClick={handleSKills}
+                >
+                  Add +
+                </button>
+                 <button
+                  className="ml-2 text-white bg-red-500 rounded-lg text-sm p-1"
+                  onClick={() => { setAdded(false) }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-semibold mb-3 mt-2">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {user?.skills?.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="mr-1 bg-gray-200 text-gray-700 px-3 py-1 text-sm rounded-lg flex items-center gap-1"
+                  >
+                    {skill}
+                  </span>
+                ))}
+                <button
+                  className="text-sm text-white rounded-lg p-1 bg-green-500"
+                  onClick={() => setAdded(true)}
+                >
+                  {user?.skills?.length > 0 ? 'Add More' : 'Add'}
+                </button>
+                {added && (
+                  <button
+                    className="text-sm text-white rounded-lg p-1 bg-green-500"
+                    onClick={() => setAdded(false)}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Resume & coverLetter */}
+        <div className="mt-6 bg-white shadow-2xl rounded-xl p-6">
+          <h3 className="text-lg font-semibold mb-3">Add Your Resume & coverLetter </h3>
           <p className="text-gray-600 text-sm">
             Showcase your skills and let jobs and companies find you.
           </p>
           <p className="text-gray-600 text-sm">Easily apply to jobs and get hired faster.</p>
           <p className="text-gray-600 text-sm">Get customized job suggestions.</p>
-  
+
           <div className="mt-4">
+            {user.resumeUrl && (
+              <a
+                href={user.resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline text-sm"
+              >
+                View Current Resume
+              </a>
+            )}
           </div>
-  
+
           <div className="mt-4">
-            {!resume  && (<> <label
-               htmlFor="resume-upload"
-               className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition duration-200"
-             >
-               Select Resume
-             </label>
-             <input
-               id="resume-upload"
-               type="file"
-               accept=".pdf,application/pdf"
-               className="hidden"
-               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setResume(file);
-                }
-              }} 
-             /></>) }
-            {resume && <button className="bg-green-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-green-600 transition duration-200" onClick={handleResume}>Upload Resume</button>}
+            {!resume && (
+              <>
+                <label
+                  htmlFor="resume-upload"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition duration-200"
+                >
+                  Select Resume
+                </label>
+                <input
+                  id="resume-upload"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="hidden"
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setResume(file);
+                    }
+                  }}
+                />
+              </>
+            )}
+            {resume && (
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-green-600 transition duration-200"
+                onClick={handleResume}
+              >
+                Upload Resume
+              </button>
+            )}
           </div>
+    
+         {/* coverLetter */}
+
+           <div className="mt-4">
+            {user.coverLetter && (
+              <a
+                href={user.coverLetter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline text-sm"
+              >
+                View Current CoverLetter
+              </a>
+            )}
+          </div>
+
+          <div className="mt-4">
+            {!coverLetter && (
+              <>
+                <label
+                  htmlFor="coverLetter-upload"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition duration-200"
+                >
+                  Select CoverLetter
+                </label>
+                <input
+                  id="coverLetter-upload"
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="hidden"
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setCoverLetter(file);
+                    }
+                  }}
+                />
+              </>
+            )}
+            {coverLetter && (
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-green-600 transition duration-200"
+                onClick={handleCoverLetter}
+              >
+                Upload coverLetter
+              </button>
+            )}
+          </div>
+          </div>
+
+
         </div>
-      </div>
       <Footer />
-      </>
-    );
-  };
-  
-  export default Profile;
-  
+    </>
+  );
+};
+
+export default Profile;

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/slices/adminSlice";
+import { RootState } from "../../store/store";
 
 interface AdiminHeaderProps {
     pageTitle: string;
@@ -16,12 +17,13 @@ const AdminHeader: React.FC<AdiminHeaderProps> = ({pageTitle}) => {
   const handleLogout = () => {
     dispatch(logout());
   }
-  const admin = useSelector((state) => state.adminAuth.admin);
+  const admin = useSelector((state: RootState) => state.adminAuth.admin);
+
   return (
     <header className="bg-white shadow-md p-4 flex justify-between items-center">
         {/* <h1 className="text-xl font-semibold">{pageTitle}</h1> */}
         <h1 className="text-xl font-semibold">  </h1>
-         
+         <p>{pageTitle}</p>
         <div className="relative">
         <button 
           onClick={handleDropDown} 
@@ -29,6 +31,7 @@ const AdminHeader: React.FC<AdiminHeaderProps> = ({pageTitle}) => {
         >
           {admin?.name}
         </button>
+
 
         {dropdownOpen && (
           <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg">

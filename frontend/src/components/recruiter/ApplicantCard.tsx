@@ -4,6 +4,11 @@ import { useNavigate } from "react-router-dom"
 
 const ApplicantCard = ({applicant}) => {
   const navigate = useNavigate();
+
+  const handleViewProfile = async(userId: string, id: string, jobId: string) => {
+      navigate(`/recruiter/userProfile/${userId}/${id}/${jobId}`)
+    
+  }
   return (
   <div
     key={applicant.id}
@@ -17,6 +22,11 @@ const ApplicantCard = ({applicant}) => {
         </h3>
         <p className="text-sm text-gray-500 mt-1">{applicant.email}</p>
       </div>
+
+      {/* Interviw Round showing */}
+
+     <div className="flex flex-row space-x-1">
+
       <span className={`px-2 py-1 text-xs rounded-full ${
         applicant.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
         applicant.status === 'Hired' ? 'bg-green-100 text-green-800' :
@@ -24,6 +34,10 @@ const ApplicantCard = ({applicant}) => {
       }`}>
         {applicant.status}
       </span>
+      {applicant.status === 'Intreview Sheduled' && applicant.round && <span className="px-2 py-1 text-xs rounded-full bg-gray-300 text-gray-800">
+         {applicant.round}
+      </span>}
+    </div>
     </div>
   
     <div className="mt-3 space-y-1.5">
@@ -44,13 +58,13 @@ const ApplicantCard = ({applicant}) => {
     </div>
   
     <div className="mt-4 flex space-x-2">
-      <button onClick={() => navigate(`/recruiter/userProfile/${applicant.userId}/${applicant.id}`)} className="px-3 py-1.5 text-sm font-medium rounded-lg  bg-indigo-50 text-indigo-600 hover:text-white hover:bg-indigo-500 transition-colors flex items-center">
+      <button onClick={() =>handleViewProfile(applicant.userId, applicant.id, applicant.jobId)} className="px-3 py-1.5 text-sm font-medium rounded-lg  bg-indigo-50 text-indigo-600 hover:text-white hover:bg-indigo-500 transition-colors flex items-center">
         <EyeIcon className="h-4 w-4 mr-1.5" />
         View Profile
       </button>
-      {applicant.status === "ShortListed" &&  (<button className="px-3 py-1.5 text-sm font-medium rounded-lg  bg-indigo-50 text-emerald-600 hover:text-white hover:bg-emerald-800 transition-colors">
+      {/* {applicant.status === "ShortListed" &&  (<button className="px-3 py-1.5 text-sm font-medium rounded-lg  bg-indigo-50 text-emerald-600 hover:text-white hover:bg-emerald-800 transition-colors">
         Message
-      </button>)}
+      </button>)} */}
     </div>
   </div>
   )

@@ -2,12 +2,12 @@ import Footer from '../../components/user/Footer'
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchUserAndDetails } from '../../api/recruiter/recriuters';
-import toast from 'react-hot-toast';
-import { acceptApplication, getApplication } from '../../api/user/userApplication';
+import { acceptApplication, getApplication, rejectApplication, declineMail } from '../../api/user/userApplication';
 import { AlertCircle } from 'lucide-react';
 import RecruiterAPI from '../../config/recruiterApi';
 import RecruiterHeader from '../../components/recruiter/RecruiterHeader';
 import InterviewForm from '../../components/recruiter/InterviewFrom';
+import toast from 'react-hot-toast';
 
 // Simple Modal Component
 const Modal = ({ open, onClose, children }: { open: boolean, onClose: () => void, children: React.ReactNode }) => {
@@ -27,45 +27,119 @@ const Modal = ({ open, onClose, children }: { open: boolean, onClose: () => void
   );
 };
 
+const DeclineModal = ({ onClose , reason, onSubmit , setReason }: { onClose: () => void, reason: string, onSubmit:(reason: string) => void, setReason: (value: string) => void }) => {
+  const [error, setError] = useState(false)
+  const handleSubmit = () => {
+     if(reason.length > 10) {
+       setError(false);
+       onSubmit(reason)
+      }
+     else setError(true);
+  }
+  
+  return (
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-4">
+  <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+    
+    {/* Close Button */}
+    <button
+      onClick={onClose}
+      className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
+    >
+      &times;
+    </button>
+
+    {/* Title */}
+    <h2 className="text-xl font-semibold text-gray-800 mb-4">Reason for Declining</h2>
+
+    {/* Input Area */}
+    <div className="mb-4">
+      <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+        Enter your reason
+      </label>
+      <textarea
+        id="reason"
+        rows={4}
+        className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-black resize-none"
+        placeholder="Please provide a reason for declining..."
+        value={reason}
+        onChange={e => setReason(e.target.value)}
+      />
+      {error && <p className='text-sm text-red-600'>Description must be atleast 10 character long.</p>}
+    </div>
+
+    {/* Submit Button */}
+    <button
+      onClick={handleSubmit}
+      className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-900 transition"
+    >
+      Submit
+    </button>
+  </div>
+</div>
+
+  )
+}
+
 interface EducationData {
-    level: string;
-    institution: string;
-    graduationYear: string;
-  }
-  
-  interface ExperienceData {
-    title: string;
-    company: string;
-    duration: string;
-    achievements: string;
-  }
-  
-  interface Applicant {
-    name: string;
-    email: string;
-    mobile: string;
-    jobTitle: string;
-    location: string;
-    status: string;
-    imageUrl: string;
-    skills: string[];
-    resumeUrl?: string;
-    education: EducationData;
-    experience: ExperienceData[];
-  }
+  level: string;
+  institution: string;
+  graduationYear: string;
+}
+
+interface ExperienceData {
+  title: string;
+  company: string;
+  duration: string;
+  achievements: string;
+}
+
+interface Applicant {
+  _id: string;
+  jobId: string;
+  name: string;
+  email: string;
+  mobile: string;
+  jobTitle: string;
+  location: string;
+  status: string;
+  imageUrl: string;
+  skills: string[];
+  resumeUrl?: string;
+  education: EducationData;
+  experience: ExperienceData[];
+}
+
+interface JobApplication {
+  _id: string;
+  userId: string;
+  jobId: string;
+  recruiterId: string;
+  status: string;
+  round?: number;
+  appliedAt: string;
+  __v: number;
+}
 
 const ViewUserProfile = () => {
   const { id } = useParams();
   const { appId } = useParams();
+  const { jobId } = useParams();
+
+  const [declineModal, setDeclineModal] = useState(false);
+  const [reason, setReason] = useState("");
+  
+  const [applicant, setApplicant] = useState<Applicant | null>(null);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
         setLoading(true);
         const response = await fetchUserAndDetails(id as string);
-        
+
         if (response.data) {
           setApplicant(response.data.userData);
+
         } else {
           setError('No user data found');
         }
@@ -80,24 +154,53 @@ const ViewUserProfile = () => {
     fetchUserDetails();
   }, [id]);
   const navigate = useNavigate();
-  const handleAccept = async() => {
-      try {
-        const response = await acceptApplication(appId as string);
-        if(response.data){
-          navigate(-1)
-          toast.success(response.data.message);
-        }
-      } catch (error) {
-        console.log(error)
+
+  const handleAccept = async () => {
+    try {
+      const response = await acceptApplication(appId as string);
+      if (response.data) {
+        setStatus("ShortListed")
       }
+    } catch (error) {
+      console.log(error)
+    }
   }
+
+  // to decline by modal and sent email to the applicant...
+  const handleDeclineSubmit = async () => {
+    if(!reason.trim()) return;
+    const toastId = toast.loading("Submitting, please wait...");
+    const response = await declineMail(reason, applicant?.name as string, applicant?.email as string, application?.jobId as string);
+    if(response.data) {
+      toast.success("Declined successfully!", { id: toastId });
+      handleDecline()
+    }
+    setDeclineModal(false);
+    setReason("");
+  }
+
+  // after handleDeclineSubmit this function will be called and change the state also ui and db...
+  const handleDecline = async () => {
+    try {
+      const response = await rejectApplication(appId as string);
+      if (response.data) {
+        setStatus("Rejected")
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const [status, setStatus] = useState({});
-  const [application, setApplication] = useState({});
+
+  const [application, setApplication] = useState<JobApplication>();
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+
   useEffect(() => {
-    const fetchApplication = async() => {
+    const fetchApplication = async () => {
       try {
         const response = await getApplication(appId as string);
-        if(response.data) {
+        if (response.data) {
           setStatus(response.data.applicantion.status);
           setApplication(response.data.applicantion);
         }
@@ -106,9 +209,9 @@ const ViewUserProfile = () => {
       }
     };
     fetchApplication();
-  },[appId])
- 
-  const [applicant, setApplicant] = useState<Applicant | null>(null);
+  }, [appId, showInterviewModal, status])
+
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,15 +221,15 @@ const ViewUserProfile = () => {
         `/downloadPdf`,
         { fileUrl },
         {
-          responseType: 'blob', 
+          responseType: 'blob',
           headers: {
             'Content-Type': 'application/json',
           },
         }
       );
-  
+
       const blob = new Blob([response.data], { type: 'application/pdf' });
-  
+
       const contentDisposition = response.headers['content-disposition'];
       let fileName = 'resume.pdf';
       if (contentDisposition) {
@@ -135,7 +238,7 @@ const ViewUserProfile = () => {
           fileName = match[1];
         }
       }
-  
+
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -143,7 +246,7 @@ const ViewUserProfile = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-  
+
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error('Error downloading resume:', error);
@@ -152,8 +255,7 @@ const ViewUserProfile = () => {
   };
 
   // Modal state
-  const [showInterviewModal, setShowInterviewModal] = useState(false);
-  
+
   if (loading) {
     return (
       <>
@@ -203,8 +305,8 @@ const ViewUserProfile = () => {
         {/* Profile Header with Image */}
         <div className="flex flex-col sm:flex-row items-start gap-6 mb-8">
           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
-            <img 
-              src={applicant.imageUrl} 
+            <img
+              src={applicant.imageUrl}
               alt={applicant.name}
               className="w-full h-full object-cover"
               onError={(e) => {
@@ -219,7 +321,7 @@ const ViewUserProfile = () => {
                 <p className="text-gray-600">{applicant.jobTitle}</p>
               </div>
             </div>
-            
+
             {/* Contact Info under name */}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -235,11 +337,11 @@ const ViewUserProfile = () => {
                 <p className="text-gray-900">{applicant.location}</p>
               </div>
               <button
-               onClick={() => navigate(`/spam/user/${applicant._id}`)}
-               className="flex items-center text-red-600 hover:text-red-700 mt-1">
-               <AlertCircle className="w-5 h-5 mr-1" />
-               <span className="text-sm font-medium">Report</span>
-             </button>
+                onClick={() => navigate(`/spam/user/${applicant._id}/${jobId}`)}
+                className="flex items-center text-red-600 hover:text-red-700 mt-1">
+                <AlertCircle className="w-5 h-5 mr-1" />
+                <span className="text-sm font-medium">Report</span>
+              </button>
             </div>
           </div>
         </div>
@@ -273,8 +375,8 @@ const ViewUserProfile = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Skills</h2>
           <div className="flex flex-wrap gap-2">
             {applicant.skills.map((skill, index) => (
-              <span 
-                key={index} 
+              <span
+                key={index}
                 className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
               >
                 {skill}
@@ -289,33 +391,34 @@ const ViewUserProfile = () => {
             <button onClick={handleAccept} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex-1 min-w-[100px]">
               Accept
             </button>
-            <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex-1 min-w-[100px]">
+            <button onClick={() => setDeclineModal(true)} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex-1 min-w-[100px]">
               Decline
             </button>
           </div>)}
           {applicant.resumeUrl && (
             <>
-           <button 
-           onClick={() => handleDownload(applicant.resumeUrl as string)}
-           className="px-4 py-2 bg-sky-800 hover:bg-sky-950 text-white rounded-lg font-medium transition-colors flex-1 sm:flex-none sm:w-auto flex items-center justify-center gap-2"
-         >
-           <span>Download Resume</span>
-         </button>
-         {status === 'ShortListed'  && ( 
-          <button
-            onClick={() => setShowInterviewModal(true)}
-            className='px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex-1 sm:flex-none sm:w-auto flex items-center justify-center gap-2'
-          >
-            Schedule Interview
-          </button>
-         )}
-         </>
+              <button
+                onClick={() => handleDownload(applicant.resumeUrl as string)}
+                className="px-4 py-2 bg-sky-800 hover:bg-sky-950 text-white rounded-lg font-medium transition-colors flex-1 sm:flex-none sm:w-auto flex items-center justify-center gap-2"
+              >
+                <span>Download Resume</span>
+              </button>
+              {application?.status !== "Rejected" && application?.round && application.round < 3 && (
+                <button
+                  onClick={() => setShowInterviewModal(true)}
+                  className='px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex-1 sm:flex-none sm:w-auto flex items-center justify-center gap-2'
+                >
+                  Schedule Interview
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
       <Modal open={showInterviewModal} onClose={() => setShowInterviewModal(false)}>
         <InterviewForm application={application} onClose={() => setShowInterviewModal(false)} />
       </Modal>
+      {declineModal && <DeclineModal onClose={() => setDeclineModal(false)} onSubmit={handleDeclineSubmit} reason={reason} setReason={setReason}/>}
       <Footer />
     </>
   )

@@ -9,7 +9,9 @@ export interface IInterview extends Document{
      recruiterId?: mongoose.Types.ObjectId;
      jobRole: string;
      interviewer: string;
+     interviewType: string;
      date: Date;
+     status: string;
      time: string;
 }
 
@@ -38,9 +40,18 @@ const interviewSchema = new Schema<IInterview>({
         type: String,
         required: true
       },
+      interviewType: {
+        type: String,
+        required: true
+      },
       date: {
         type: Date,
         required: true
+      },
+      status: {
+        type: String,
+        required: true,
+        default: 'pending'
       },
       time: {
         type: String,

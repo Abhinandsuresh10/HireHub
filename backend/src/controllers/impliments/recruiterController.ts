@@ -6,6 +6,7 @@ import { HttpResponse } from '../../constants/response.message';
 import cloudinary from '../../config/cloudinary';
 import { HttpStatus } from '../../constants/status.constants';
 import axios from 'axios';
+import { razorpay } from '../../config/razorpay';
 
 
 export class recruiterController {
@@ -78,7 +79,7 @@ export class recruiterController {
           const { email, password } = req.body;
           const { accessToken, refreshToken, recruiter } = await this.service.loginRecruiter(email, password);
           
-          res.cookie('recruiterRefreshToken', refreshToken, {
+          res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: Number(process.env.REFRESH_TOKEN_MAX_AGE) || 604800000,
@@ -263,5 +264,234 @@ export class recruiterController {
         } 
         }
       }
+
+      public getDashboardMatrics = async(req: Request, res: Response): Promise<void> => {
+        try {
+          const recruiterId = req.query.id as string;
+          const matrics = await this.service.getDashboardMatrics(recruiterId);
+          res.status(HttpStatus.OK).json({ message: HttpResponse.RECRUITER_DASHBOARD_GET_SUCCESS, matrics}) 
+        } catch (error) {
+        if (error instanceof Error) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+        } else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        } 
+        }
+      }
+
+      public getDashboardCompletedInterviews = async(req: Request, res: Response): Promise<void> => {
+        try {
+        const recruiterId = req.query.id as string;
+        const recentInterviews = await this.service.getDashboardCompletedInterviews(recruiterId);
+        res.status(HttpStatus.OK).json({ message: HttpResponse.RECRUITER_DASHBOARD_GET_SUCCESS, recentInterviews })  
+        } catch (error) {
+        if (error instanceof Error) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+        } else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        } 
+        }
+      }
+
+      public getDashboardGraphData = async(req: Request, res: Response): Promise<void> => {
+        try {
+         const receiverId = req.query.id as string;
+         const months = await this.service.getDashboardGraphData(receiverId);
+         res.status(HttpStatus.OK).json({ message: HttpResponse.RECRUITER_DASHBOARD_GET_SUCCESS, months});
+        } catch (error) {
+        if (error instanceof Error) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+        } else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        } 
+        }
+      }
+
+      public createPremiumPurchase = async(req: Request, res: Response): Promise<void> => {
+        try {
+          const amount = parseInt(req.body.amount as string);
+          
+          const options = {
+            amount,
+            currency: "INR",
+            receipt: "receipt_order_" + Date.now(),
+          }
+          const order = await razorpay.orders.create(options);
+          res.status(HttpStatus.OK).json({message: HttpResponse.PREMIUM_PURCHASE_SUCCESS, order})
+        } catch (error) {
+           if (error instanceof Error) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+        } else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        }
+        }
+      }
+
+      public completePremiumPurchase = async(req: Request, res: Response): Promise<void> => {
+      try {
+        const id = req.body.id as string;
+        const paymentId = req.body.paymentId as string;
+        const price = parseInt(req.body.price as string);
+
+        const recruiter = await this.service.completePurchase(id, paymentId, price);
+        res.status(HttpStatus.OK).json({message: HttpResponse.PREMIUM_PURCHASE_SUCCESS, recruiter})
+      } catch (error) {
+        if (error instanceof Error) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+        } else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        } 
+      }
+    }
+
+    public getCompletedInterviews = async(req: Request, res: Response): Promise<void> => {
+      try {
+        const recruiterId = req.query.id as string;
+        const page = parseInt(req.query.page as string);
+        const limit = parseInt(req.query.limit as string);
+        
+        const { interviewers, total} = await this.service.getCompletedInterviews(recruiterId, page, limit);
+        res.status(HttpStatus.OK).json({ message: HttpResponse.RECRUITER_DASHBOARD_GET_SUCCESS, interviewers , total})  
+      } catch (error) {
+         if (error instanceof Error) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+        } else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        } 
+      }
+    }
+
+    public addOfferLetter = async(req: Request, res: Response): Promise<void> => {
+      try {
+        
+        if (!req.file) {
+           res.status(HttpStatus.BAD_REQUEST).json({ message: 'No file uploaded' });
+        }
+
+        const userId = req.query.userId as string;
+        
+        if (!userId) {
+             res.status(HttpStatus.BAD_REQUEST).json({ message: 'User ID is required' });
+        }
+
+
+       const publicId = `offerLetter_${userId}`
+       
+           const result = await new Promise((resolve, reject) => {
+             const uploadStream = cloudinary.uploader.upload_stream(
+                 {
+                     folder: process.env.OFFERLETTER_FOLDER,
+                     resource_type: "raw",
+                     public_id: publicId,
+                     format: "pdf",
+                     overwrite: true,
+                     flags: 'attachment',
+                 },
+                 (error, result) => {
+                     if (error) {
+                         reject(error);
+                     } else {
+                         resolve(result);
+                     }
+                 }
+             );
+  
+             uploadStream.end(req.file?.buffer);
+         });
+
+         
+         const offerLetter =  (result as any)?.secure_url;
+
+         res.status(HttpStatus.OK).json({ message: HttpResponse.OFFERLETTER_POST_SUCCESS, offerLetter})
+
+      } catch (error) {
+        if (error instanceof Error) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+        } else {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+        }
+      }
+    }
+
+    public viewedUserProfiles = async(req: Request, res: Response): Promise<void> => {
+      try {
+        // do this after making user showing page in recruiter side.. 
+        res.status(HttpStatus.OK).json({ message: HttpResponse.RECRUITER_FETCH_SUCCESS})
+      } catch (error) {
+       if (error instanceof Error) {
+           res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+       } else {
+           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+       } 
+      }
+    }
+
+    public getUsers = async(req: Request, res: Response): Promise<void> => {
+      try {
+        const page = parseInt(req.query.page as string);
+        const limit = parseInt(req.query.limit as string);
+        const jobType = req.query.jobType as string;
+        const jobRole = req.query.jobRole as string;
+        const { filteredUsers, total} = await this.service.getAllUsers(page, limit, jobType, jobRole);
+        res.status(HttpStatus.OK).json({ message: HttpResponse.USER_FETCH_SUCCESS, filteredUsers, total});
+      } catch (error) {
+       if (error instanceof Error) {
+           res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+       } else {
+           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+       }  
+      }
+    }
+
+
+    public getAnyUserDetails = async(req: Request, res: Response): Promise<void> => {
+      try {
+        const  id  = req.params.id as string;
+        const user = await this.service.getAnyUserDetails(id);
+        res.status(HttpStatus.OK).json({ message: HttpResponse.USER_FETCH_SUCCESS, user})
+      } catch (error) {
+       if (error instanceof Error) {
+           res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+       } else {
+           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+       }  
+      }
+    }
+
+    public checkDayVisitedComplete = async(req: Request, res: Response): Promise<void> => {
+      try {
+        const id = req.params.id as string;
+        const viewUserProfile = await this.service.checkDayVisitedComplete(id);
+        res.status(HttpStatus.OK).json({ message: HttpResponse.DAILY_VISIT_COUNT_GET_FAIL, viewUserProfile})
+      } catch (error) {
+      if (error instanceof Error) {
+         if (error.message.includes("limit")) {
+           res.status(HttpStatus.FORBIDDEN).json({ error: error.message });
+         } else {
+           res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
+        }
+       } else {
+         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+       } 
+      }
+    }
+
+    public checkDayAddJobComplete = async(req: Request, res: Response): Promise<void> => {
+      try {
+        const id = req.params.id as string;
+        const addedJobs = await this.service.checkDayAddJobComplete(id);
+        res.status(HttpStatus.OK).json({ message: HttpResponse.DAILY_ADD_JOB_COUNT_GET_FAIL, addedJobs})
+      } catch (error) {
+        if (error instanceof Error) {
+         if (error.message.includes("limit")) {
+           res.status(HttpStatus.FORBIDDEN).json({ error: error.message });
+         } else {
+           res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
+        }
+       } else {
+         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+       } 
+      }
+    }
 
 }

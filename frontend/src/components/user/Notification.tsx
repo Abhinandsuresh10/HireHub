@@ -6,6 +6,8 @@ import { RootState } from "../../store/store";
 import { io, Socket } from "socket.io-client";
 import { deleteNotification, fetchNotifications } from "../../api/user/notification";
 import toast from "react-hot-toast";
+import { verifyPassword } from "../../api/user/users";
+import RecruiterAPI from "../../config/recruiterApi";
 
 const socket:Socket = io("http://localhost:5000");
 
@@ -13,7 +15,94 @@ const socket:Socket = io("http://localhost:5000");
 interface NotificationItem {
   _id: string;
   content: string;
+  offerLetter?: string;
   date: string;
+}
+
+interface OfferItem {
+  fileUrl: string;
+  onClose: () => void;
+}
+
+// to debounce and make a delay
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timeout);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+const OfferLetterModal:React.FC<OfferItem> = ({ onClose, fileUrl}) => {
+  const [password, setPassword] = useState<string>('');
+  const debouncedSearch = useDebounce(password, 500);
+  const user = useSelector((state: RootState) => state.users.user);
+
+    useEffect(() => {
+    if (debouncedSearch.trim()) {
+      const passwordVerify = async() => {
+        const response = await verifyPassword(debouncedSearch, user._id);
+        if(response.data) {
+          toast.success(response.data.message);
+           try {
+           const response = await RecruiterAPI.post(
+             `/downloadPdf`,
+             { fileUrl },
+             {
+               responseType: 'blob', 
+               headers: {
+                 'Content-Type': 'application/json',
+               },
+             }
+           );
+       
+           const blob = new Blob([response.data], { type: 'application/pdf' });
+       
+           const contentDisposition = response.headers['content-disposition'];
+           let fileName = 'offerLetter.pdf';
+           if (contentDisposition) {
+             const match = contentDisposition.match(/filename="?(.+)"?/);
+             if (match?.[1]) {
+               fileName = match[1];
+             }
+           }
+       
+           const downloadUrl = window.URL.createObjectURL(blob);
+           const link = document.createElement('a');
+           link.href = downloadUrl;
+           link.setAttribute('download', fileName);
+           document.body.appendChild(link);
+           link.click();
+           document.body.removeChild(link);
+       
+           window.URL.revokeObjectURL(downloadUrl);
+
+           onClose();
+
+           } catch (error) {
+             console.error('Error downloading resume:', error);
+             alert('Failed to download resume');
+           }
+        }
+      }
+      passwordVerify();
+    }
+  }, [debouncedSearch, user, fileUrl, onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-brightness-30 bg-opacity-50">
+        <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-xs flex flex-col items-center ">
+          <p className="text-black text-xs">Please enter your password to download offerLetter ?</p>
+          <div className="flex justify-between items-center space-x-10">
+          <button onClick={onClose} className="text-xs text-white px-2 py-1 m-2 bg-red-600 rounded-lg">close</button>
+          <input type='password' className="border border-black rounded px-2 py-0.5" onChange={(e) => setPassword(e.target.value)} />
+          </div>
+        </div>
+      </div>
+  )
 }
 
 const Notification = () => {
@@ -22,7 +111,10 @@ const Notification = () => {
   const [limit] = useState(5);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const user = useSelector((state: RootState) => state.auth.user);
+  const [offerModal, setOfferModal] = useState(false);
+  const [offerLetter, setOfferLetter] = useState<string>('');
+
+  const user = useSelector((state: RootState) => state.users.user);
 
  
 
@@ -81,14 +173,23 @@ const Notification = () => {
                   <div className="text-xs text-gray-400 mt-1">
                     {new Date(notif.date).toLocaleString()}
                   </div>
+                  <div className="flex flex-row space-x-2 mt-2">
+                  <button
+                    onClick={() => handleDelete(notif._id)}
+                    className="text-white text-sm font-medium px-2 py-1 rounded transition bg-red-500 "
+                    title="Delete"
+                  >
+                    Delete
+                  </button>
+                  {notif.offerLetter && 
+                    <button
+                    className="text-white bg-green-500 text-sm font-medium px-2 py-1 rounded transition "
+                    title="Download" onClick={() => { setOfferModal(true); setOfferLetter(notif.offerLetter as string) }}>
+                    Download OfferLetter
+                    </button>
+                    }
+                    </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(notif._id)}
-                  className="text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded transition"
-                  title="Delete"
-                >
-                  Delete
-                </button>
               </li>
             ))}
           </ul>
@@ -119,6 +220,7 @@ const Notification = () => {
       </div>
     </main>
     <Footer />
+    {offerModal && <OfferLetterModal onClose={() => setOfferModal(false)} fileUrl={offerLetter} />}
   </div>
 );
 };

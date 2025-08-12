@@ -13,8 +13,11 @@ const adminControllers = new adminController(adminServices);
 adminRoutes.post('/register', adminControllers.register);
 adminRoutes.post('/login', adminControllers.login);
 adminRoutes.get('/getUsers', verifyJWT, adminControllers.getUsers);
-adminRoutes.get('/getRecruiters', verifyJWT ,adminControllers.getRecruiters)
-adminRoutes.patch('/userBlockUnblock', verifyJWT ,adminControllers.userBlockUnblock)
-adminRoutes.patch('/recruiterBlockUnblock', verifyJWT ,adminControllers.recruiterBlockUnblock)
+adminRoutes.get('/getRecruiters', verifyJWT ,adminControllers.getRecruiters);
+adminRoutes.patch('/userBlockUnblock', verifyJWT ,adminControllers.userBlockUnblock);
+adminRoutes.patch('/recruiterBlockUnblock', verifyJWT ,adminControllers.recruiterBlockUnblock);
+adminRoutes.route('/dashboard').get(verifyJWT, adminControllers.getDashboardStats);
+adminRoutes.route('/dashboardBar').get(verifyJWT, adminControllers.getDashboardBars);
+adminRoutes.route('/dashboardLineData').get(verifyJWT, adminControllers.getDashboardLineData);
 
 export default adminRoutes;

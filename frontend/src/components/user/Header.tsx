@@ -1,14 +1,17 @@
-  import { useRef, useState } from "react"
-  import { useDispatch, useSelector } from "react-redux";
-  import { Link, useNavigate } from "react-router-dom";
-  import { logout } from "../../store/slices/userSlice";
-  import toast from "react-hot-toast";
+import { useRef, useState } from "react"
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { logout } from "../../store/slices/userSlice";
+import toast from "react-hot-toast";
 import { removeUser } from "../../store/slices/userDataSlice";
 import {  Inbox, MessagesSquare } from "lucide-react";
 import { RootState } from "../../store/store";
 
   const Header = () => {
     const boxRef = useRef(null);
+
+    const location = useLocation();
+    const currentPath = location.pathname;
   
       
       const [menuOpen, setMenuOpen] = useState(false);
@@ -23,12 +26,10 @@ import { RootState } from "../../store/store";
       
       const dispatch = useDispatch();
       const handleLogut = () => {
-        const logoutPer = window.confirm('are you sure Logout ?');
-        if(logoutPer) {
           toast.success('Logout success')
           dispatch(logout())
           dispatch(removeUser())
-        }
+        
       }
 
     return (
@@ -42,9 +43,10 @@ import { RootState } from "../../store/store";
         
 
           {/* Nav Links */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 ">
+          {currentPath !== '/' && <Link to='/' className="text-gray-800 hover:text-blue-600">Home</Link>}
           <Link to='/jobs' className="text-gray-800 hover:text-blue-600">Jobs</Link>
-          <a href="#companies">Companies</a>
+          <Link to="/company" className="text-gray-800 hover:text-blue-600">Companies</Link>
             <Link to='/profile' className="text-gray-800 hover:text-blue-600">Profile</Link>
           </nav>
 
@@ -91,9 +93,10 @@ import { RootState } from "../../store/store";
           {/* Mobile menu */}
 
           {menuOpen && (
-              <div className="absolute top-16 left-0 w-full bg-white shadow-md p-4 flex flex-col space-y-4 md:hidden">
+              <div className="absolute z-50 top-16 left-0 w-full bg-white shadow-md p-4 flex flex-col space-y-4 md:hidden">
+                {currentPath !== '/' && <Link to='/' className="text-gray-800 hover:text-blue-600">Home</Link>}
                   <Link to='/jobs' className="text-gray-800 hover:text-blue-600">Jobs</Link>
-                  <a href="#companies" className="text-gray-800 hover:text-blue-600">Companies</a>
+                  <Link to='/company' className="text-gray-800 hover:text-blue-600">Companies</Link>
                   <Link to='/profile' className="text-gray-800 hover:text-blue-600">Profile</Link>
                   <Link to='/chat' className="text-gray-800 hover:text-blue-600">Chat</Link>
                   <button 

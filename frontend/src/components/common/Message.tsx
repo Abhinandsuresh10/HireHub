@@ -32,6 +32,7 @@
 
   interface Chat {
     _id: string;
+    roomId: string;
     name: string;
     email: string;
     messages: Message[];
@@ -47,6 +48,17 @@
     const [showSidebar, setShowSidebar] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [unreadCounts, setUnreadCounts] = useState<{ [roomId: string]: number }>({})
+
+
+    useEffect(() => {
+     socket.on("update_unread", ({ roomId, count }) => {
+      setUnreadCounts(prev => ({ ...prev, [roomId]: count }));
+     });
+     return () => {
+      socket.off("update_unread");
+     }
+    }, []);
 
     useEffect(() => {
       if (id) {
@@ -170,6 +182,7 @@
 
     const handleChatSelect = (chat: Chat) => {
       setSelectedChat(chat);
+      socket.emit("read_messages", { roomId: chat._id, userId: id })
       if (window.innerWidth < 768) {
         setShowSidebar(false);
       }
@@ -210,6 +223,13 @@
 
       reader.readAsDataURL(file);
     };
+
+    {filteredChatters.map((chatter) => {
+  console.log("chatter.roomId", chatter.roomId); // Should print the roomId!
+  return (
+    <p>hello guys</p>
+       );
+     })}
 
     return (
       <div className="flex flex-col md:flex-row h-screen bg-gray-50">
@@ -259,15 +279,20 @@
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center">
                     <p className="font-medium text-gray-900 truncate">{chatter.name}</p>
+                    {unreadCounts[chatter.roomId] > 0 && (
+                     <p className='bg-blue-400 text-white text-xs rounded-full px-1.5 py-0.5 '>
+                       {unreadCounts[chatter.roomId]} 
+                     </p>
+                    )}
                     {chatter.messages.length > 0 && (
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 ">
                         {isNaN(Date.parse(chatter.messages[chatter.messages.length - 1].sentAt))
                           ? "Invalid Date"
                           : new Date(chatter.messages[chatter.messages.length - 1].sentAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
                       </span>
                     )}
                   </div>

@@ -15,6 +15,10 @@ import MessageApp from "../components/common/Message"
 import SpamReportForm from "../components/common/SpamReportForm"
 import InterviewFrom from "../components/recruiter/InterviewFrom"
 import VideoCall from "../components/common/VideoCall"
+import Dashoboard from "../pages/recruiter/Dashboard"
+import ViewUsers from "../pages/recruiter/ViewUsers"
+import ViewAnyUserProfile from "../pages/recruiter/ViewAnyUserProfile"
+import CompletedInterviews from "../pages/recruiter/CompletedInterviews"
 
 const RecruiterRoutes = () => {
   return (
@@ -27,11 +31,15 @@ const RecruiterRoutes = () => {
        <Route path='/postJob' element={<JobPostForm/>} />
        <Route path='/editProfile' element={<EditProfile />} />
        <Route path='/editJob/:id' element={<EditJob />} />
-       <Route path='/userProfile/:id/:appId' element={<ViewUserProfile />} />
+       <Route path='/userProfile/:id/:appId/:jobId' element={<ViewUserProfile />} />
        <Route path='/chat/:role/:id' element={<MessageApp />} />
-       <Route path='/spam/:role/:id' element={<SpamReportForm />} />
+       <Route path='/spam/:role/:id/:jobId' element={<SpamReportForm />} />
        <Route path='/sheduleInterview' element={<InterviewFrom />} />
        <Route path='/videoCall/:id' element={<VideoCall />} />
+       <Route path='/dashboard' element={<Dashoboard />} />
+       <Route path='/viewUsers' element={<ViewUsers />} />
+       <Route path='/viewUserDetails/:id' element={<ViewAnyUserProfile />} />
+       <Route path='/CompletedInterviews' element={<CompletedInterviews />} />
       </Route>
 
       <Route element={<RecruiterPublicRoute/>} >

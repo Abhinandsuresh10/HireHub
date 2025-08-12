@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface INotification extends Document {
   senderId?: mongoose.Types.ObjectId;
   content?: string;
+  offerLetter?: string;
   userId?: mongoose.Types.ObjectId;
   date: Date;
 }
@@ -10,6 +11,7 @@ export interface INotification extends Document {
 const notificationSchema = new Schema<INotification>({
   senderId: { type: Schema.Types.ObjectId, ref:'Recruiter' },
   content: { type: String, required: false },
+  offerLetter: { type: String, required: false },
   userId: { type: Schema.Types.ObjectId, ref:'User' },
   date: { type: Date, default: Date.now },
 });

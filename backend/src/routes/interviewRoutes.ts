@@ -14,5 +14,7 @@ const interviewControllers = new interviewController(service);
 interviewRoutes.route('/sheduleInterview').post(verifyJWT, interviewControllers.createInterview).get(verifyJWT, interviewControllers.getInterviews);
 interviewRoutes.get('/sheduledUserInterviews', verifyJWT, interviewControllers.getUsersInterviews);
 interviewRoutes.get('/sheduleInterviewById/:id', verifyJWT, interviewControllers.getInterviewById);
+interviewRoutes.patch('/resheduleInterview/:id', verifyJWT, interviewControllers.resheduleInterview);
+interviewRoutes.get('/getInterview/:id', verifyJWT, interviewControllers.getInterview);
 
 export default interviewRoutes;

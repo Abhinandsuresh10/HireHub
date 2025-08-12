@@ -1,15 +1,20 @@
 import { HttpResponse } from "../../constants/response.message";
 import { IJob } from "../../models/JobSchema";
 import { jobRepository } from "../../repositories/impliments/jobRespository";
+import { userRepository } from "../../repositories/impliments/userRepository";
 import { IjobRepositoryInterface } from "../../repositories/interface/IjobRepositoryInterface";
+import { IuserRepositoryInterface } from "../../repositories/interface/IuserRepositoryInterface";
+import { Prefference } from "../../types/job.types";
 import { IjobService } from "../interface/IjobService";
 
 
 export class jobService implements IjobService {
     private jobRepository: IjobRepositoryInterface;
+    private userRepository: IuserRepositoryInterface;
 
-    constructor(jobRepository: jobRepository) {
+    constructor(jobRepository: jobRepository, userRepository: userRepository) {
          this.jobRepository = jobRepository;
+         this.userRepository = userRepository;
     }
 
     async postJob(data: IJob) {
@@ -49,9 +54,17 @@ export class jobService implements IjobService {
         }
      }
 
-     async getUserJobs(page: number, limit: number, search: string): Promise<{ data: IJob[]; total: number; }> {
+     async getUserJobs(userId: string, page: number, limit: number, search: string, jobType: string, jobLocation: string, minSalary: number, maxSalary: number): Promise<{ data: IJob[]; total: number; }> {
          try {
-            const { data , total} = await this.jobRepository.findAllJobs(page, limit, search);
+            const user = await this.userRepository.findUserById(userId);
+            if(!user) {
+                throw new Error(HttpResponse.USER_NOT_FOUND);
+            }
+            const prefferd: Prefference = {
+               preferredJobRoles: user.preferredJobRoles ?? [],
+               preferredJobTypes: user.preferredJobTypes ?? [],
+            };
+            const { data , total} = await this.jobRepository.findAllJobs(prefferd, page, limit, search, jobType, jobLocation, minSalary, maxSalary);
           if(!data) {
               throw new Error(HttpResponse.UNABLE_FETCH_JOBS)
           }
@@ -112,6 +125,18 @@ export class jobService implements IjobService {
      async getRoles(): Promise<string[] | null> {
          try {
             return await this.jobRepository.getRoles();
+         } catch (error) {
+            if(error instanceof Error) {
+                throw error;
+            } else {
+                throw new Error(HttpResponse.UNKNOWN_ERROR)
+            } 
+         }
+     }
+
+    async getTitles(): Promise<string[] | null> {
+         try {
+            return await this.jobRepository.getTitles();
          } catch (error) {
             if(error instanceof Error) {
                 throw error;

@@ -3,6 +3,8 @@ import Room from "../models/MessageRoomSchema";
 import Message from "../models/MessageSchema";
 import cloudinary from "../config/cloudinary";
 import Notification from "../models/Notification";
+import Interview from "../models/InterviewSchema";
+import Application from "../models/ApplicatinSchema";
 
 interface MessagePayload {
   senderId: string;
@@ -27,7 +29,13 @@ export const setupSocket = (io: Server) => {
         let room = await Room.findOne({ participants: { $all: [senderId, receiverId], $size: 2 } });
 
         if (!room) {
-          room = await Room.create({ participants: [senderId, receiverId] });
+          room = await Room.create({ 
+             participants: [senderId, receiverId] ,
+             unread: [
+              { userId: senderId, count: 0},
+              { userId: receiverId, count: 0}
+            ]
+          });
         }
 
         const newMessage = await Message.create({
@@ -46,6 +54,16 @@ export const setupSocket = (io: Server) => {
           message,
           sentAt: newMessage.sentAt,
         });
+
+        await Room.updateOne(
+         { _id: room._id, "unread.userId": receiverId},
+         { $inc: { "unread.$.count": 1 }}
+         );
+    
+        const updatedRoom = await Room.findById(room._id);
+        const receiverUnread = updatedRoom?.unread.find(u => u.userId === receiverId)?.count || 0;
+        io.to(receiverId).emit("update_unread", { roomId: room._id, count: receiverUnread });
+
       } catch (error) {
         console.error("Error handling sent_message:", error);
       }
@@ -91,12 +109,13 @@ export const setupSocket = (io: Server) => {
       }
     });
 
-    socket.on("shedule_interview",  async ({ senderId, content, userId}) => {
+    socket.on("shedule_interview",  async ({ senderId, content, offerLetter, userId}) => {
       try {
         
         const notification = await Notification.create({
           senderId,
           content,
+          offerLetter,
           userId,
           date: new Date()
         });
@@ -105,6 +124,7 @@ export const setupSocket = (io: Server) => {
           _id: notification._id,
           senderId,
           content,
+          offerLetter,
           userId,
           date: notification.date,
         })
@@ -114,17 +134,35 @@ export const setupSocket = (io: Server) => {
       }
     });
 
+    socket.on("read_messages", async ({ roomId, userId }) => {
+      await Room.updateOne(
+        { _id: roomId, "unread.userId": userId },
+        { $set: {"unread.$.count": 0}}
+      );
+      io.to(userId).emit("update_unread", { roomId, count: 0})
+    })
+
     socket.on("call_user", ({interviewId, callerId, receiverId}) => {
-      console.log('hello world', interviewId, callerId, receiverId);
       io.to(receiverId).emit("incoming_call", { interviewId, callerId, receiverId });
     });
-
+    
     socket.on("end_call", ({ roomId }) => {
       socket.to(roomId).emit("call_ended");
     });
 
     socket.on("webrtc_signal", ({ roomId, data }) => {
       socket.to(roomId).emit("webrtc_signal", data);
+    });
+
+    socket.on("complete", async (id) => {
+      try {
+       const updatedInterview = await Interview.findByIdAndUpdate(id.roomId, { status: 'completed' }, { new: true });
+       if(updatedInterview) {
+        await Application.findByIdAndUpdate(updatedInterview.applicationId, { status: "Completed" }, { new : true})
+       }
+      } catch (error) {
+         console.error("Error handling schedule_interview:", error);
+      }
     })
 
     socket.on("disconnect", () => {

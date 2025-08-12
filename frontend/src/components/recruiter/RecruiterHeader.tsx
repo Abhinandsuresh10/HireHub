@@ -1,15 +1,18 @@
 import { useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { logout } from "../../store/slices/recruiterSlice";
 import toast from "react-hot-toast";
 import { removeRecruiter } from "../../store/slices/recruiterDataSlice";
 import { MessagesSquare } from "lucide-react";
-import { RootState } from "@/store/store";
+import { RootState } from "../../store/store";
 
 const RecruiterHeader = () => {
 
     const boxRef = useRef(null);
+
+    const location = useLocation();
+    const currentPath = location.pathname;
   
     const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
@@ -22,12 +25,10 @@ const RecruiterHeader = () => {
       
     const dispatch = useDispatch();
     const handleLogut = () => {
-      const logoutPer = window.confirm('are you sure Logout ?');
-      if(logoutPer) {
         toast.success('Logout success')
         dispatch(logout());
         dispatch(removeRecruiter());
-      }
+      
     }
 
   return (
@@ -42,8 +43,9 @@ const RecruiterHeader = () => {
 
           {/* Nav Links */}
           <nav className="hidden md:flex space-x-8">
-            <Link to="/recruiter/jobs">Manage Jobs</Link>
-            <a href="#companies">Dashboard</a>
+            {currentPath !== '/recruiter' && <Link to="/recruiter" className="text-gray-800 hover:text-blue-600">Home</Link>}
+            <Link to="/recruiter/jobs" className="text-gray-800 hover:text-blue-600">Manage Jobs</Link>
+            <Link to="/recruiter/dashboard" className="text-gray-800 hover:text-blue-600">Dashboard</Link>
             <Link to='/recruiter/profile' className="text-gray-800 hover:text-blue-600">Profile</Link>
           </nav>
 
@@ -87,9 +89,10 @@ const RecruiterHeader = () => {
           {/* Mobile menu */}
 
           {menuOpen && (
-              <div className="absolute top-16 left-0 w-full bg-white shadow-md p-4 flex flex-col space-y-4 md:hidden">
+              <div className="absolute top-16 left-0 w-full bg-white shadow-md p-4 flex flex-col space-y-4 md:hidden z-50">
+                {currentPath !== '/recruiter' && <Link to="/recruiter" className="text-gray-800 hover:text-blue-600">Home</Link>}
                   <Link to="/recruiter/jobs" className="text-gray-800 hover:text-blue-600">Manage Jobs</Link>
-                  <a href="#companies" className="text-gray-800 hover:text-blue-600">Dashboard</a>
+                  <Link to="/recruiter/dashboard" className="text-gray-800 hover:text-blue-600">Dashboard</Link>
                   <Link to='/recruiter/profile' className="text-gray-800 hover:text-blue-600">Profile</Link>
                   <Link to='/recruiter/chat' className="text-gray-800 hover:text-blue-600">Chat</Link>
                   <button 

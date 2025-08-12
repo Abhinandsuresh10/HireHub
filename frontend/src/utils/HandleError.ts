@@ -13,5 +13,4 @@ export const handleAxiosError = (error:unknown):never=>{
         }
     }
     throw new Error((error as Error).message);
-
 }

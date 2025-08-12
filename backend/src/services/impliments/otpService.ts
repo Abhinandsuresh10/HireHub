@@ -8,7 +8,7 @@ export class OtpService {
     static async generateOTP(email: string, role: "user" | "recruiter" | "admin") {
         const otp = Math.floor(1000 + Math.random() * 9000).toString(); 
         const key = `otp:${role}:${email}`;
-        console.log(otp);
+        
         
         await redisClient.setEx(key, this.OTP_EXPIRY, otp); 
 

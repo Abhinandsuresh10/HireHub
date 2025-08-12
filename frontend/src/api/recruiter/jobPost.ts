@@ -73,3 +73,5 @@ export const getTitles = async() => {
     throw handleAxiosError(error);
   }
 }
+
+

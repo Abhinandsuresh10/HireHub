@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IRoom extends Document {
   participants: string[];
+  unread: { userId: string, count: number} [];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -9,6 +10,12 @@ export interface IRoom extends Document {
 const roomSchema = new Schema<IRoom>(
   {
     participants: [{ type: String, required: true }],
+    unread: [
+      {
+        userId: { type: String, required: true },
+        count: { type: Number, default: 0 }
+      }
+    ]
   },
   { timestamps: true }
 );

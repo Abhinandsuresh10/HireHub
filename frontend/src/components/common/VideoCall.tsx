@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Mic, MicOff, Video, VideoOff, PhoneOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../../utils/socket";
+import Feedback from "./Feedback";
 
 type WebRTCSignal =
   | { type: "offer"; offer: RTCSessionDescriptionInit }
@@ -10,6 +11,8 @@ type WebRTCSignal =
 
 const VideoCall = () => {
   const { id: roomId } = useParams();
+  const [showModal, setShowModal] = useState(false)
+  
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
 
@@ -38,7 +41,7 @@ const VideoCall = () => {
     };
 
     socket.on("webrtc_signal", handleSignal);
-    // after completeing prefferd job check the audio working or not...
+    // - check the audio working or not...
     navigator.mediaDevices.getUserMedia({ video: true , audio: true}).then((stream) => {
       if (!isMounted) return;
      
@@ -56,6 +59,10 @@ const VideoCall = () => {
       peerConnection.current.ontrack = (event: RTCTrackEvent) => {
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = event.streams[0];
+          const audioTrack = event.streams[0].getAudioTracks();
+          if(audioTrack.length > 0) {
+            remoteVideoRef.current.play().catch(e => console.error("play error:",e))
+          }
         }
       };
 
@@ -74,11 +81,13 @@ const VideoCall = () => {
       };
 
       socket.emit("join_room", roomId);
+
     });
 
     const handleCallEnded = () => {
       cleanup();
-      navigate(-1);
+      // navigate(-1);
+      setShowModal(true)
     };
     socket.on("call_ended", handleCallEnded);
 
@@ -117,19 +126,35 @@ const VideoCall = () => {
   const handleEndCall = () => {
    cleanup();
    socket.emit("end_call", { roomId });
-   navigate(-1);
+   socket.emit("complete", { roomId });
+   setShowModal(true);
   };
+
 
   useEffect(() => {
     socket.on("call_ended", () => {
-      navigate(-1);
+      // navigate(-1);
+      setShowModal(true)
     });
     return () => { 
        socket.off("call_ended");
       }
   },[navigate]);
 
+  const handleToggleMute = () => {
+    setIsMuted((prev) => {
+      const newMuted = !prev;
+      if (localStreamRef.current) {
+        localStreamRef.current.getAudioTracks().forEach(track => {
+          track.enabled = !newMuted;
+        })
+      }
+      return newMuted;
+    })
+  }
+
   return (
+    <>
     <div className="relative h-screen w-full bg-gray-900 overflow-hidden">
  
       <div className="h-[calc(100%-80px)] w-full flex items-center justify-center p-4">
@@ -139,10 +164,10 @@ const VideoCall = () => {
             ref={remoteVideoRef}
             autoPlay
             playsInline
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover -scale-x-100"
             id="remoteVideo"
           />
-        </div>
+        </div> 
 
        
         <div className="absolute bottom-24 right-4 w-64 h-48 rounded-md overflow-hidden border-2 border-white shadow-xl bg-black">
@@ -150,8 +175,8 @@ const VideoCall = () => {
             ref={localVideoRef}
             autoPlay
             playsInline
-            muted
-            className={`w-full h-full object-cover ${isVideoOff ? 'hidden' : ''}`}
+            // muted
+            className={`w-full h-full object-cover ${isVideoOff ? 'hidden' : ''} -scale-x-100`}
             id="localVideo"
           />
           {isVideoOff && (
@@ -167,7 +192,7 @@ const VideoCall = () => {
       
       <div className="absolute bottom-0 left-0 right-0 h-20 bg-gray-800 bg-opacity-70 flex items-center justify-center gap-6">
         <button
-          onClick={() => setIsMuted(!isMuted)}
+          onClick={handleToggleMute}
           className={`h-12 w-12 rounded-full flex items-center justify-center ${
             isMuted ? 'bg-red-600' : 'bg-gray-600 hover:bg-gray-700'
           } text-white transition-colors`}
@@ -200,6 +225,10 @@ const VideoCall = () => {
         </button>
       </div>
     </div>
+      {showModal && 
+      <Feedback onClose={() => setShowModal(false)} id={roomId as string}/>
+      }
+      </>
   );
 };
 

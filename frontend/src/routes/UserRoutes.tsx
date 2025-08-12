@@ -14,6 +14,9 @@ import MessageApp from "../components/common/Message";
 import SpamReportForm from "../components/common/SpamReportForm";
 import Notification from "../components/user/Notification";
 import VideoCall from "../components/common/VideoCall";
+import Company from "../pages/user/Company";
+import ViewAllRecruiters from "../pages/user/ViewAllRecruiters";
+import ViewAnyRecruiterProfile from "../pages/user/ViewAnyRecruiterProfile";
 
 const UserRoutes = () => {
   return (
@@ -27,9 +30,12 @@ const UserRoutes = () => {
         <Route path="/editProfile" element={<EditProfile />} />
         <Route path='/myJobs' element={<JobApplicationTracker />} />
         <Route path='/chat/:role/:id' element={<MessageApp />} />
-        <Route path='/spam/:role/:id' element={<SpamReportForm />} />
+        <Route path='/spam/:role/:id/:jobId' element={<SpamReportForm />} />
         <Route path='/notification' element={<Notification />} />
-        <Route path='/videoCall/:id' element={<VideoCall />} />
+        <Route path='/videoCall/:id/' element={<VideoCall />} />
+        <Route path='/company' element={<Company />} />
+        <Route path='/viewRecruiters' element={<ViewAllRecruiters />} />
+        <Route path='/viewAnyRecruiter/:id' element={<ViewAnyRecruiterProfile />} />
       </Route>
 
       <Route element={<PublicRoute />}>

@@ -1,4 +1,5 @@
-import { FaHome, FaUsers, FaBriefcase, FaExclamationTriangle, FaCog, FaLightbulb } from "react-icons/fa";
+import { Crown, Grid } from "lucide-react";
+import { FaHome, FaUsers, FaBriefcase, FaExclamationTriangle, FaLightbulb } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const Sidebar = () => {
@@ -37,10 +38,16 @@ const Sidebar = () => {
               <span className="hidden lg:inline ml-3">Skills</span>
             </Link>
           </li>
-          <li>
-            <Link to='/setting' className="flex items-center justify-center lg:justify-start hover:bg-black px-4 py-2 rounded">
-              <FaCog className="text-xl" />
-              <span className="hidden lg:inline ml-3">Settings</span>
+          <li className="mb-4">
+            <Link to='/admin/jobRoles' className="flex items-center justify-center lg:justify-start hover:bg-black px-4 py-2 rounded">
+              <Grid className="text-xl" />
+              <span className="hidden lg:inline ml-3">jobRoles</span>
+            </Link>
+          </li>
+          <li className="mb-4">
+            <Link to='/admin/preimum' className="flex items-center justify-center lg:justify-start hover:bg-black px-4 py-2 rounded">
+              <Crown className="text-xl" />
+              <span className="hidden lg:inline ml-3">premium</span>
             </Link>
           </li>
         </ul>

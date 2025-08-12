@@ -30,6 +30,7 @@ export class jobController {
 
       public getJobs = async (req:Request, res:Response): Promise<void> => {
         try {
+            
         const recruiterId = req.query.id as string;
         const page = parseInt(req.query.page as string);
         const limit = parseInt(req.query.limit as string);
@@ -62,10 +63,16 @@ export class jobController {
 
       public userGetJob = async (req: Request, res: Response): Promise<void> => {
         try {
+            const userId = req.query.userId as string;
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 6;
             const search = req.query.search as string || '';
-            const { data , total} = await this.service.getUserJobs(page, limit, search);
+            const jobType = req.query.jobType as string || '';
+            const jobLocation = req.query.jobLocation as string || '';
+            const minSalary = parseInt(req.query.minSalary as string);
+            const maxSalary = parseInt(req.query.maxSalary as string);
+
+            const { data , total} = await this.service.getUserJobs(userId, page, limit, search, jobType, jobLocation, minSalary, maxSalary);
             res.status(200).json({message: HttpResponse.JOBS_FETCH_SUCCESS, data, total});
             
         } catch (error) {
@@ -110,6 +117,19 @@ export class jobController {
         try {
            const roles = await this.service.getRoles();
            res.status(HttpStatus.OK).json({message: HttpResponse.JOBS_FETCH_SUCCESS, roles}) 
+        } catch (error) {
+          if (error instanceof Error) {
+              res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 
+          } else {
+              res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: HttpResponse.SERVER_ERROR });
+          } 
+        }
+      }
+
+      public getTitles = async(req: Request, res: Response): Promise<void> => {
+         try {
+           const types = await this.service.getTitles();
+           res.status(HttpStatus.OK).json({message: HttpResponse.JOBS_FETCH_SUCCESS, types}) 
         } catch (error) {
           if (error instanceof Error) {
               res.status(HttpStatus.BAD_REQUEST).json({ error: error.message }); 

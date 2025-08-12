@@ -51,7 +51,7 @@ export function Skills() {
         }
       }
     } catch (err: any) {
-      toast.error(err.message);
+      if(err) toast.error(err.message);
     }
   };
 
@@ -70,8 +70,8 @@ export function Skills() {
           toast.success('Skill added');
         }
       }
-    } catch (err) {
-      toast.error('Failed to add skill');
+    } catch (err: unknown) {
+      if(err) toast.error('Failed to add skill');
     }
   };
 
@@ -102,7 +102,7 @@ export function Skills() {
     <div className="h-screen flex">
       <Sidebar />
       <div className="flex-1 flex flex-col h-screen overflow-auto">
-        <AdminHeader pageTitle="Dashboard" />
+        <AdminHeader pageTitle="Skills" />
         <div className="w-full max-w-5xl mx-auto p-8">
           <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden">
             <div className="p-8 bg-gradient-to-r from-blue-600 to-purple-600">

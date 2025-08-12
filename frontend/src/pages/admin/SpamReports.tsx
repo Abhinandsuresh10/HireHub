@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Search, ShieldAlert, Mail, AlertCircle, User, Calendar } from 'lucide-react';
+import { Search, ShieldAlert, AlertCircle, User, Calendar } from 'lucide-react';
 import Sidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
 import { getSpamReports } from '../../api/common/Spam';
+import JobCard from '../../components/admin/jobCard';
+import Spammer from '../../components/admin/Spammer';
 
 interface SpamReport {
   id: number;
+  jobId: string;
+  refId: string;
   role: string;
   name: string;
   email: string;
@@ -15,31 +19,67 @@ interface SpamReport {
   createdAt: string;
 }
 
+interface Data {
+  refId: string;
+  role: string;
+}
+
 const SpamReports = () => {
   const [reports, setReports] = useState<SpamReport[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string>('');
+  const [showSpammerModal, setShowSPammerModal] = useState(false);
+  const [selectedSpammer, setSelectedSpammer] = useState<Data | null>(null)
+ 
 
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await getSpamReports();
-        console.log(response.data.reports)
+        const response = await getSpamReports(page, 6);
+        
         setReports(response.data.reports);
+        setTotal(response.data.total);
       } catch (error) {
         console.error('Error fetching reports:', error);
       }
     };
 
     fetchReports();
-  }, []);
-
+  }, [page]);
+  
   const filteredReports = reports.filter(report => 
     report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     report.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     report.reason.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const handleViewJob = (jobId: string) => {
+    setSelectedJobId(jobId)
+    setShowJobModal(true)
+  }
+
+  const handleSpammer = (refId: string, role:string) => {
+    const data = {
+      refId,
+      role
+    }
+    setSelectedSpammer(data);
+    setShowSPammerModal(true)
+  }
+  
+  const handleNext = () => {
+    setPage((prev) => prev + 1)
+  }
+
+  const handlePrev = () => {
+    setPage((prev) => Math.max(prev - 1, 1))
+  }
 
   return (
+    <>
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar />
@@ -80,18 +120,9 @@ const SpamReports = () => {
                   <div key={report.id} className="shadow-xl rounded-lg overflow-hidden hover:shadow-md transition-shadow bg-white">
                     <div className="p-5">
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-lg font-medium">{report.name}</h3>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          {report.role}
-                        </span>
                       </div>
                       
                       <div className="space-y-3 text-sm text-gray-600">
-                        {/* Report details... */}
-                        <div className="flex items-start gap-2">
-                          <Mail className="flex-shrink-0 mt-0.5" size={16} />
-                          <span>{report.email}</span>
-                        </div>
                         
                         <div className="flex items-start gap-2">
                           <AlertCircle className="flex-shrink-0 mt-0.5 text-red-500" size={16} />
@@ -119,6 +150,8 @@ const SpamReports = () => {
                   <div className="flex items-center gap-2 text-gray-500 text-xs">
                     <Calendar size={14} />
                     Reported on: {report.createdAt.slice(0, 10)}
+                      <button className='ml-10 p-1 px-2 rounded bg-red-500 text-white' onClick={() => handleSpammer(report.refId, report.role)}>Spammer</button>
+                      <button className="p-1 px-2 rounded bg-cyan-800 text-white opacity-70" onClick={() => handleViewJob(report.jobId)} >view job</button>
                   </div>
 
                       </div>
@@ -128,9 +161,25 @@ const SpamReports = () => {
               </div>
             )}
           </div>
+
+          <div className="flex items-center justify-center">
+             <div className="flex items-center gap-4 p-2 m-2">
+               <button className={`p-2 m-2 rounded-lg bg-black text-white ${page === 1 ? 'opacity-50' : ''}`} disabled={page === 1} onClick={handlePrev}>Prev</button>
+               <span>Page {page}</span>
+               <button className={`p-2 m-2 rounded-lg bg-black text-white ${page * 6 >= total ? 'opacity-50': ''}`} disabled={page * 6 >= total} onClick={handleNext}>Next</button>
+             </div>
+          </div>
+
         </main>
       </div>
     </div>
+    {showJobModal && (
+      <JobCard jobId={selectedJobId} onClose={() => setShowJobModal(false)} />
+    )}
+    {showSpammerModal && (
+      <Spammer data={selectedSpammer} onClose={() => setShowSPammerModal(false)} />
+    )}
+    </>
   );
 };
 

@@ -23,9 +23,10 @@ export const getEducation = async(userId: string) => {
          const response = await EducationAPI.get(`/getEducation?userId=${userId}`);
          return response.data.education;
         } catch (error) {
-          handleAxiosError(error)
+          throw handleAxiosError(error);
         }
 }
+
 
 export const deleteEducation = async(id: string) => {
    try {
